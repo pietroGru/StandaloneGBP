@@ -58,8 +58,6 @@ void DetectorConstruction::DefineMaterials() {
 	// It seems that it is necessary to call the materials with this command for they to be available to the macro commands. (?)
 	man->FindOrBuildMaterial("G4_Si");
 	man->FindOrBuildMaterial("G4_AIR");
-	
-	G4Material* sapphire = man->FindOrBuildMaterial("G4_ALUMINUM_OXIDE");
 
 	G4double density = universe_mean_density;    //from PhysicalConstants.h
 	G4double pressure = 3.e-18 * pascal;
@@ -69,7 +67,6 @@ void DetectorConstruction::DefineMaterials() {
 	fDefaultMaterial = Galactic;
 
 	//Just a placeholder for now
-	G4Element* Al = man->FindOrBuildElement("Al");
 	fMetalizationMaterial = new G4Material("Aluminum", 13., 26.98 * g / mole, 2.700 * g / cm3);
 
 	G4cout << *(G4Material::GetMaterialTable()) << G4endl;
@@ -98,7 +95,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes() {
 	
 	// Detector - metalization strip
 	G4double mWidth = (fPitch - fSpacing);
-	char tmp_mn[10]; sprintf(tmp_mn, "( %f um)", fThickness); G4String metName = tmp_mn;
+	//char tmp_mn[10]; sprintf(tmp_mn, "( %f um)", fThickness); G4String metName = tmp_mn;
 	G4Box* metalizationS = new G4Box("Metalization", mWidth / 2., fLength / 2., fMetalizationThickness / 2.);
 	G4LogicalVolume* metalizationL = new G4LogicalVolume(metalizationS, fMetalizationMaterial, "Metalization");
 	//front strips
