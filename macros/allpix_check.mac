@@ -1,0 +1,36 @@
+###############################################################################
+#  Allpix2 cross-check
+#  This macro serves to cross-check allpix2 depositions with
+#  respect to the results from Geant4.
+#
+#  Electron beam; 5 GeV; vacuum;
+#  standard GBP design 2cm/100um/200 strips
+###############################################################################
+
+#/control/verbose 1
+#/run/verbose 1
+#/tracking/verbose 1
+
+/profiler/det/setMatWorld   Galactic
+/profiler/det/setMaterial   G4_ALUMINUM_OXIDE
+/profiler/det/setThickness  100 um
+/profiler/det/setPitch      100 um
+/profiler/det/setLength       2 cm
+/profiler/det/setNbOfStrips 200
+/profiler/det/setNbOfLayers  50
+/profiler/det/setStripSpacing  20 um
+#/profiler/det/setMetThickness  100 nm
+#/profiler/phys/addPhysics local
+/profiler/gun/setDefault
+/profiler/gun/rndm 0 um
+/profiler/gun/rndmY 0 um
+/profiler/gun/position 0 0 -10 cm
+
+/gun/particle e-
+/gun/energy 5 GeV
+
+/run/setCut 1 um
+/run/initialize
+/analysis/setFileName allpix_check
+/run/printProgress 100000
+/run/beamOn        1000000

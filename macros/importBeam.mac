@@ -1,0 +1,14 @@
+###############################################################################
+#  Gaussian beam run (runXY) with 10^9 particles (_9) and
+#  1 um production range cut (_cut1) in air (_air) with a 10 cm distance
+#  from the particle source (10). The simulation uses emstandard_opt4 (_opt4) 
+###############################################################################
+/control/execute share.mac
+
+#RUN1
+/profiler/phys/addPhysics emstandard_opt4
+/run/setCut 1 um
+/run/initialize
+/analysis/setFileName runXY_7_cut1_air10_opt4
+/run/printProgress 1000000
+/run/beamOn        1000000000

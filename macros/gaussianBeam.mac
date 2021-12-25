@@ -1,0 +1,9 @@
+/control/execute share.mac
+
+#RUN1
+/profiler/phys/addPhysics emstandard_opt4
+/run/setCut 1 um
+/run/initialize
+/analysis/setFileName runXY_7_cut1_air10_opt4
+/run/printProgress 1000000
+/run/beamOn        1000000000

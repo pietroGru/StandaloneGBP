@@ -1,0 +1,71 @@
+##############################################################################################################################################################
+#   Standaone MC for GBP common macro
+#   This macro contains the init commands for the GBP.
+#
+#   The parameters one can set are:
+#   -the world material
+#   -the material of the sapphire
+#   -its geometric parameters:
+#   -- thickness
+#   -- pitch
+#   -- x,y-lengths
+#   -- number of strips
+#   -- number of longitudinal layers
+#   -- amount of space between a metalizzation and another
+#   -- thickness of the metalizzed layer
+#   -physics list (emstandard w. options / FTFP_BERT)
+#   
+#   Initial beam is selectable between a monochromatic gaussian photon (pdg 22) beam and
+#   the realistic beam, you can import from a root file. What you use in the simulation is set by calling
+#   /profiler/gun/type {gaussian OR imported}
+#   
+#   For gaussian beam, you can set x,y-beam variance with the commands "/profiler/gun/rndmX 375 um" and "/profiler/gun/rndmY 375 um"
+#   
+#   For the imported beam, you have to set the filename of the root file containing beam data. The command is: ?
+##############################################################################################################################################################
+#/control/verbose 1
+#/run/verbose 1
+#/tracking/verbose 1
+
+# Set the world material. For vacuum set "Galactic" while for air use "G4_AIR"
+/profiler/det/setMatWorld   G4_AIR
+# Set detector material. There is a limited amount of other material loaded. Sapphire is G4_ALUMINUM_OXIDE
+/profiler/det/setMaterial   G4_ALUMINUM_OXIDE
+
+# Set the detector length L. Detector is L x L x d.
+/profiler/det/setLength       2 cm
+# Set detector thickness d.
+/profiler/det/setThickness  100 um
+
+# Set the strip pitch. Default value is 100 um
+/profiler/det/setPitch      100 um
+# Set the number of strips
+/profiler/det/setNbOfStrips 200
+# Set the number of longitudinal layers for each strip
+/profiler/det/setNbOfLayers  50
+# Set the space between a metalizzation and another along the transverse direction |--metalizzation98--|-space-|--metalizzation99--|-space-|...
+/profiler/det/setStripSpacing  20 um
+# Set the thickness of the metallized layer
+#/profiler/det/setMetThickness  100 nm
+
+# Set the physics list. Options are local, emstandard, FTFP_BERT
+/profiler/phys/addPhysics local
+
+# Set default parameters for the gun
+#more comment on this later
+/profiler/gun/setDefault
+
+# Primary section.
+#   Gaussian beam.
+#   Set beam variance over the X axis
+/profiler/gun/rndm 375 um
+#   Set beam variance over the Y axis
+/profiler/gun/rndmY 375 um
+
+#   Import beam from file
+#   Set path of the root file with beam data
+# COOMAND EHRE
+
+#   Set an offset position for the gun. This serves to shoot the distributions over the geom. center of a strip
+/profiler/gun/position -0.0050 -0.0050 -10 cm				# Shoot in the strip 100(X) 100(Y)
+# Gun z-position can be arranged up to |r| = 24 cm from the origin
