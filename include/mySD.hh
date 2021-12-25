@@ -15,10 +15,13 @@ public:
 	mySD(G4String name):
 		G4VSensitiveDetector(name),
 		fHitsCollection(nullptr),
-		fEdep(),
-		fEtot(),
-		fHCID(-1), fNbOfStrips(-1),
-		fNbOfLayers(-1), fThickness(0),	fLength(0) {
+		fHCID(-1),
+    fNbOfStrips(-1),
+    fNbOfLayers(-1),
+    fEtot(),
+    fEdep(),
+    fThickness(0),
+    fLength(0) {
 		collectionName.insert("myCollection");
 	};
 	~mySD() {};
@@ -40,7 +43,6 @@ private:
 	G4double fEtot[2];
 	G4double fSlentot[2];
 	G4double fEdep[2][STRIP_MAX]; // va definito dinamicamente ma come const usando fNbOfStrips -> così si spreca memoria
-
 	G4double fThickness;
 	G4double fLength;
 };
