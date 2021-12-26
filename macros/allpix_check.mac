@@ -22,8 +22,8 @@
 #/profiler/det/setMetThickness  100 nm
 #/profiler/phys/addPhysics local
 /profiler/gun/setDefault
-/profiler/gun/rndm 0 um
-/profiler/gun/rndmY 0 um
+/profiler/gun/gaussX 0 um
+/profiler/gun/gaussY 0 um
 /profiler/gun/position 0 0 -10 cm
 
 /gun/particle e-

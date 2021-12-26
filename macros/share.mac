@@ -54,18 +54,3 @@
 # Set default parameters for the gun
 #more comment on this later
 /profiler/gun/setDefault
-
-# Primary section.
-#   Gaussian beam.
-#   Set beam variance over the X axis
-/profiler/gun/rndm 375 um
-#   Set beam variance over the Y axis
-/profiler/gun/rndmY 375 um
-
-#   Import beam from file
-#   Set path of the root file with beam data
-# COOMAND EHRE
-
-#   Set an offset position for the gun. This serves to shoot the distributions over the geom. center of a strip
-/profiler/gun/position -0.0050 -0.0050 -10 cm				# Shoot in the strip 100(X) 100(Y)
-# Gun z-position can be arranged up to |r| = 24 cm from the origin

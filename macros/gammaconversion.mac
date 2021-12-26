@@ -35,8 +35,8 @@
 /process/inactivate msc
 
 /profiler/gun/setDefault
-/profiler/gun/rndm 375 um
-/profiler/gun/rndmY 375 um
+/profiler/gun/gaussX 375 um
+/profiler/gun/gaussY 375 um
 /gun/particle gamma
 /gun/energy   5 GeV
 /gun/position 0 0 -10 cm
