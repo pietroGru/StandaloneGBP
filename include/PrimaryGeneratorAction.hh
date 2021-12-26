@@ -18,7 +18,7 @@ public:
 	~PrimaryGeneratorAction();
 
 	//Gaussian distributed beam. Functions
-	void SetGausSigmaX(G4double val) { fRndmBeam = val; beamMode = 1; }
+	void SetGausSigmaX(G4double val) { fRndmBeamX = val; beamMode = 1; }
 	void SetGausSigmaY(G4double val) { fRndmBeamY = val; beamMode = 1; }
 	void SetDefaultKinematic();
 
@@ -44,7 +44,7 @@ private:
 	// 2-realistic beam imported from root file;
 
 	// Gaussian distributed beam. Variables
-	G4double                   fRndmBeam;
+	G4double                   fRndmBeamX;
 	G4double                   fRndmBeamY;
 	// Functions
 	G4ThreeVector GaussianBeam_pos(G4ThreeVector center);

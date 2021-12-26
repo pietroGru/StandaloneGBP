@@ -13,9 +13,10 @@
 PrimaryGeneratorAction::PrimaryGeneratorAction(DetectorConstruction* det) :
 	G4VUserPrimaryGeneratorAction(),
 	fDetector(det),
-	fRndmBeam(0.),
 	pGunPosition(0),
-	beamMode(-1){
+	beamMode(-1),
+	fRndmBeamX(0.),
+	fRndmBeamY(0.){
 		fParticleGun = new G4ParticleGun(1);
 		fParticleGun->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle(22)); // Photon
 		fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
@@ -105,19 +106,19 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 // Return the three-vector for the particle gun position distributed with sigmaX, Y over the center mean value
 G4ThreeVector PrimaryGeneratorAction::GaussianBeam_pos(G4ThreeVector center) {
 	G4ThreeVector ppGun_pos = center;
-	if (fRndmBeam > 0. && fRndmBeamY > 0.) { // randomize the beam along XY with different variances
+	if (fRndmBeamX > 0. && fRndmBeamY > 0.) { // randomize the beam along XY with different variances
 		//@Pietro
-		if (fRndmBeam > fDetector->GetLength()) {
-			fRndmBeam = fDetector->GetLength();
+		if (fRndmBeamX > fDetector->GetLength()) {
+			fRndmBeamX = fDetector->GetLength();
 		}
 		else if (fRndmBeamY > 2. * cm) {
 			fRndmBeamY = 2. * cm;
 		}
-		ppGun_pos += G4ThreeVector(G4RandGauss::shoot(0., fRndmBeam), G4RandGauss::shoot(0., fRndmBeamY), 0.);
+		ppGun_pos += G4ThreeVector(G4RandGauss::shoot(0., fRndmBeamX), G4RandGauss::shoot(0., fRndmBeamY), 0.);
 	}
-	else if (fRndmBeam > 0.) { // randomize the beam along X with fRndmBeam variance
-		if (fRndmBeam > fDetector->GetLength()) fRndmBeam = fDetector->GetLength();
-		ppGun_pos += G4ThreeVector(G4RandGauss::shoot(0., fRndmBeam), 0., 0.);
+	else if (fRndmBeamX > 0.) { // randomize the beam along X with fRndmBeam variance
+		if (fRndmBeamX > fDetector->GetLength()) fRndmBeamX = fDetector->GetLength();
+		ppGun_pos += G4ThreeVector(G4RandGauss::shoot(0., fRndmBeamX), 0., 0.);
 	}
 	else if (fRndmBeamY > 0.) { // randomize the beam along Y with fRndmBeamY variance
 		if (fRndmBeamY > 2. * cm) fRndmBeamY = 2. * cm;

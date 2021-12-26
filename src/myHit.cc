@@ -14,8 +14,8 @@ myHit::myHit() :
 	fStripID(-1),
 	fLayerID(-1),
 	fEdep(0.),
-	fStepLength(0.),
-	fParticleType(-1)
+	fParticleType(-1),
+	fStepLength(0.)
 {}
 
 myHit::myHit(G4int detID, G4int stripID, G4int layerID) :
@@ -23,9 +23,9 @@ myHit::myHit(G4int detID, G4int stripID, G4int layerID) :
 	fDetID(detID),
 	fStripID(stripID),
 	fLayerID(layerID),
+	fEdep(0.),
 	fParticleType(-1),
-	fStepLength(0.),
-	fEdep(0.)
+	fStepLength(0.)
 {}
 
 myHit::myHit(G4int detID, G4int stripID, G4int layerID, G4double stepLength) :
@@ -33,9 +33,9 @@ myHit::myHit(G4int detID, G4int stripID, G4int layerID, G4double stepLength) :
 	fDetID(detID),
 	fStripID(stripID),
 	fLayerID(layerID),
-	fStepLength(stepLength),
+	fEdep(0.),
 	fParticleType(-1),
-	fEdep(0.)
+	fStepLength(stepLength)
 {}
 
 myHit::myHit(G4int detID, G4int stripID, G4int layerID, G4int particlePDGCode) :
@@ -43,8 +43,8 @@ myHit::myHit(G4int detID, G4int stripID, G4int layerID, G4int particlePDGCode) :
 	fDetID(detID),
 	fStripID(stripID),
 	fLayerID(layerID),
-	fParticleType(particlePDGCode),
-	fEdep(0.)	
+	fEdep(0.),
+	fParticleType(particlePDGCode)
 {}
 
 myHit::myHit(G4int detID, G4int stripID, G4int layerID, G4int particlePDGCode, G4double stepLength) :
@@ -52,9 +52,9 @@ myHit::myHit(G4int detID, G4int stripID, G4int layerID, G4int particlePDGCode, G
 	fDetID(detID),
 	fStripID(stripID),
 	fLayerID(layerID),
+	fEdep(0.),
 	fParticleType(particlePDGCode),
-	fStepLength(stepLength),
-	fEdep(0.)
+	fStepLength(stepLength)
 {}
 
 myHit::~myHit() {}
