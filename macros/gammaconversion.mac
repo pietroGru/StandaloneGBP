@@ -21,7 +21,6 @@
 
 #/profiler/phys/addPhysics local
 
-/control/execute vis.mac
 /vis/scene/endOfEventAction accumulate 100
 
 # no photoElectric nor Compton

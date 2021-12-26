@@ -6,11 +6,6 @@
 /profiler/gun/gaussX 375 um
 #   Set beam variance over the Y axis
 /profiler/gun/gaussY 375 um
-
-#   Import beam from file
-#   Set path of the root file with beam data
-# COOMAND EHRE
-
 #   Set an offset position for the gun. This serves to shoot the distributions over the geom. center of a strip
 /profiler/gun/position -0.0050 -0.0050 -10 cm				# Shoot in the strip 100(X) 100(Y)
 # Gun z-position can be arranged up to |r| = 24 cm from the origin
@@ -21,4 +16,4 @@
 /run/initialize
 /analysis/setFileName runXY_7_cut1_air10_opt4
 /run/printProgress 1000000
-/run/beamOn        1000000000
+/run/beamOn        10000000

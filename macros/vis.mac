@@ -1,7 +1,14 @@
-# Macro file for the initialization phase of the vis mode for the "StandaloneGBP.cc"
-# Sets some default verbose
-# and initializes the graphic.
+###############################################################################
+#  Vis initialization macro
+#  This macro is loaded by default is you run the binary file withouth
+#  passing any argument to it. By default, the vis.mac file is loaded and
+#  the OpenGL windows is initialized. Geometry is created, and local phys.
+#  is initialized.
 #
+#  You can set your own physics with the addPhysics command. Once you depositions
+#  this the geometry will be reinitialized.
+###############################################################################
+
 /control/verbose 2
 /run/verbose 2
 #
@@ -29,7 +36,6 @@
 #
 # Specify style (surface or wireframe):
 #/vis/viewer/set/style wireframe
-#
 #
 # Draw smooth trajectories at end of event, showing trajectory points
 # as markers 2 pixels wide:
