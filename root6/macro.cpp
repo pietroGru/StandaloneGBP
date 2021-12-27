@@ -1,4 +1,5 @@
 /*
+ROOT Analysis macro for the StandaloneGBP
 Tree description
 t0 - Event tree
     0 - event           It stores the event identifier.
