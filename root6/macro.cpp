@@ -828,10 +828,10 @@ std::vector<TH1D> edepProject(double meshSize = 0.100){
         TString helper = "Energy deposited in the " + whichDetVerbose(i) + " detector";
         result[2*i] = new TH1D(*temp[i].ProjectionX());
         result[2*i]->SetTitle(helper);
-        result[2*i]->GetYaxis("Deposited energy / BX [KeV]");
+        result[2*i]->GetYaxis()->SetTitle("Deposited energy / BX [KeV]");
         result[2*i+1] = new TH1D(*temp[i].ProjectionY());
         result[2*i+1]->SetTitle(helper);
-        result[2*i+1]->GetYaxis("Deposited energy / BX [KeV]");
+        result[2*i+1]->GetYaxis()->SetTitle("Deposited energy / BX [KeV]");
     }
 
     if(verbosityLevel>0){
