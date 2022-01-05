@@ -68,16 +68,19 @@ G4bool mySD::ProcessHits(G4Step* aStep, G4TouchableHistory*) {
 
 
 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+	G4RunManager* runManager = G4RunManager::GetRunManager();
+	G4int eventID = runManager->GetCurrentEvent()->GetEventID();
 	G4int pdgCode = aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding();
 	G4double sLeng = aStep->GetStepLength();
 	// Dose evaluation
-	analysisManager->FillNtupleIColumn(6, 0, detID);
-	analysisManager->FillNtupleDColumn(6, 1, point.x());
-	analysisManager->FillNtupleDColumn(6, 2, point.y());
-	analysisManager->FillNtupleDColumn(6, 3, point.z());
-	analysisManager->FillNtupleDColumn(6, 4, edep / CLHEP::keV);
-	analysisManager->FillNtupleDColumn(6, 5, sLeng / CLHEP::um);
-	analysisManager->FillNtupleIColumn(6, 6, pdgCode);
+	analysisManager->FillNtupleIColumn(6, 0, eventID);
+	analysisManager->FillNtupleIColumn(6, 1, detID);
+	analysisManager->FillNtupleDColumn(6, 2, point.x());
+	analysisManager->FillNtupleDColumn(6, 3, point.y());
+	analysisManager->FillNtupleDColumn(6, 4, point.z());
+	analysisManager->FillNtupleDColumn(6, 5, edep / CLHEP::keV);
+	analysisManager->FillNtupleDColumn(6, 6, sLeng / CLHEP::um);
+	analysisManager->FillNtupleIColumn(6, 7, pdgCode);
 	analysisManager->AddNtupleRow(6);
 	
 	

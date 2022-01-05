@@ -84,6 +84,7 @@ void RunAction::BeginOfRunAction(const G4Run*) {
 	// Pietro debug tree
 	// This tree stores the energy deposition from pdgcode particle over the slen as a function of pos
 	analysisManager->CreateNtuple("t6",	"Pietro debug tree");					// This Ntuple stores ...
+	analysisManager->CreateNtupleIColumn(6, "event");
 	analysisManager->CreateNtupleIColumn(6, "det");								// Detector ID
 	analysisManager->CreateNtupleDColumn(6, "x");								// X
 	analysisManager->CreateNtupleDColumn(6, "y");								// Y
