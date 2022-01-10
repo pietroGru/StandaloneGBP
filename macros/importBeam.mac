@@ -14,7 +14,6 @@
 # Gun z-position can be arranged up to |r| = 24 cm from the origin
 
 #RUN1
-/profiler/phys/addPhysics emstandard_opt4
 /run/setCut 1 um
 /run/initialize
 /analysis/setFileName kyleBeam_9_50_0.root
