@@ -1,7 +1,7 @@
 ###############################################################################
-#  Gaussian beam run (runXY) with 10^9 particles (_9) and
-#  1 um production range cut (_cut1) in air (_air) with a 10 cm distance
-#  from the particle source (10). The simulation uses emstandard_opt4 (_opt4) 
+#  Import beam run (kyleBeam) with 10^9 particles (_9) using
+#  the \xi=5 (_50) initial beam with beam waist w_0=0 (_0).
+#  MC weight is read from file. The simulation uses emstandard_opt4 by default
 ###############################################################################
 /control/execute share.mac
 
@@ -17,8 +17,9 @@
 /profiler/phys/addPhysics emstandard_opt4
 /run/setCut 1 um
 /run/initialize
-/analysis/setFileName kyleBeam_6_50_0.root
+/analysis/setFileName kyleBeam_9_50_0.root
 /run/printProgress 11426
 /run/beamOn        1142604
 
+#   Print energy thresholds for the materials used, given the range cut above.
 /run/dumpCouples
