@@ -49,9 +49,6 @@
 # Set the thickness of the metallized layer
 #/profiler/det/setMetThickness  100 nm
 
-# Set the physics list. Options are local, emstandard, FTFP_BERT
-/profiler/phys/addPhysics local
-
 # Set default parameters for the gun
 #more comment on this later
 /profiler/gun/setDefault
