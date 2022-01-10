@@ -87,40 +87,48 @@ TTree* debugTree        = (TTree*)input->Get("t6");
     inline int getConfig(){ return getConfig(ifilename); }
 // Primary
     std::vector<TH1D> beamMonitor(int bins = 400, float range = 2, bool autobin = false);                // Primary particle monitor
+    std::vector<TH2D> primaryProfile(int pdg=11);                                                                   // Number XY profile of the particles. Filter for particles with given pdg code
     std::vector<TH1D> primarySpectrum();                                                                  // Energy spectrum of primaries
     std::vector<TH1D> primarySpectrum(int pdg, double range = 10.0);                                     // Energy spectrum of primaries with the given pdg code. Return 2-array with 0-pdgfiltered, 1-all part.s
-    std::vector<TH2D> primaryProfile(int pdg=11);                                                                   // Number XY profile of the particles.
-    //TH2D primaryProfile(int pdg);                                                          // Number XY profile of the particles.  Filter for particles with given pdg code
+    std::vector<TH1D> primarySpectrumLogLog(int pdg, double lowRange = 1E-9, double highRange = 16.0, int binsNb = 100); // Energy spectrum of primaries with the given pdg code, with variable size bins. Return 2-array with 0-pdgfiltered, 1-all part.s
     std::vector<TH2D> primaryEnergyProfile();                                                             // Energy XY profile of the particles. Each point (x,y) is weightned with the corresponding energy
-    //TH2D primaryEnergyProfile(int pdg);                                                    // Energy XY profile of the particles. Each point (x,y) is weightned with the corresponding energy. Filter for particles with given pdg code
-    void overlayBeamProfiles();                                                              // Superimpose the beam profile of the primaries with the reconstructed one
+    // void overlayBeamProfiles();                                                              // Superimpose the beam profile of the primaries with the reconstructed one
 // Energy deposition plots
     std::vector<TH1D> edepSpectrum(int bins, float emin, float emax);                                         // Energy spectrum of depositions for the upstream/downstream detector
+    std::vector<TH1D> edepSpectrumPartitionedByPrimaryEnergies(int bins=1000, double emin = 0.0 /*GeV*/, double emax= 6.0 /*GeV*/, double baseRatio = -1E6 /*keV*/);// Energy spectrum of depositions for the upstream/downstream detector in a window Ea-Eb, partitioned by primary energies. Energy in keV
     // std::vector<TH1D> edepSpectrumPartitioned(int bins, float emin, float emax);
-    // std::vector<TH1D> edepSpectrumChg(int bins, double a, double b);                                  // Energy spectrum of depositions for selected particles. Return a 2-array with the spectrum of energy deposited in upstream/downstream detector in the range [a,b] with #bins. Sel is a selector for the values \xi={"5.0", "7.0", "10.0"}
-    // std::vector<TH1D> edepSpectrumChg();                                                                    // Energy spectrum of depositions for selected particles. Default energy range 0-1000 and 1000 bins.
+    std::vector<TH1D> edepSpectrumChg(int bins, double a, double b);                                  // Energy spectrum of depositions for selected particles. Return a 2-array with the spectrum of energy deposited in upstream/downstream detector in the range [a,b] with #bins. Sel is a selector for the values \xi={"5.0", "7.0", "10.0"}
+    std::vector<TH1D> edepSpectrumChg();                                                                    // Energy spectrum of depositions for selected particles. Default energy range 0-1000 and 1000 bins.
     std::vector<TH1D> eSpectrumStrip(int stripNb = 100, float range = 5.);                   // Energy spectrum of depositions in a given strip number for some det#
     double totalEdep(int detNb=0);                                                           // Energy deposited in detNb in keV
     double* eStrip_array(int stripNb = 100);                                                 // 2-array of energy deposited in the strip 100 for upstream/downstream detectors in keV
     double eStrip(int detNb=0, int stripNb = 100);                                           // Energy deposited in the strip 'stripNb' of detector 'detNb' in keV
-    double eStrip(int detNb=0, int stripNb = 100, float range = 1.);                         // Energy spectrum of depositions in a given strip number. Return energy deposited in keV
+    // double eStrip(int detNb=0, int stripNb = 100, float range = 1.);                         // Energy spectrum of depositions in a given strip number. Return energy deposited in keV
     std::vector<TH1D> eLongitudinal_array(int nbBins = 100);                                             // Longitudinal energy deposition profile. Custom binning available. Return 2-array with det0 and det1 plots
     TH1D eLongitudinal(int detNb);                                                           // Longitudinal energy deposition profile for detNb
     TH1D eLongitudinal(int detNb, int nbBins);                                               // Longitudinal energy deposition profile for detNb with custom binning.
     std::vector<TH1D> edepProject(double meshSize = 0.100);                                              // Energy deposition in the transverse plane. Return 4-array [0]det0x, [1]det0y, [2]det1x, [3]ddet1y
     std::vector<TH1D> edepProject(bool filter, double meshSize = 0.100);                                              // Energy deposition in the transverse plane for primaries with a selection filter (i.e. charge/neutral). Return 4-array [0]det0x, [1]det0y, [2]det1x, [3]ddet1y
     std::vector<TH1D> edepProjectStripTree();                                                            // Energy deposition profile in the strips. It uses the strip tree data. Return a 2-array for det0 and 1
+    std::vector<TH1D> edepProjectStripTree(double pE0, double pE1);// Energy deposition profile in the strips given primaries in selected energy range [pE0, pE1] GeV. Return a 2-array for det0 and 1
     std::vector<TH1D> edepStripChg();                                                   // Energy deposition profile in the strips with comparison with deposition from charged primaries, for the primaries in the energy range [enLow, enHigh]. It uses the strip tree data. Return a 2-array for det0 and 1
+    std::vector<TH1D> edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/, double enHigh=10.0 /*GeV*/, double baseRatio = 10.0); // Energy depositions in the strips separated between the contributions with different energies
+    void plot_edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/, double enHigh=10.0 /*GeV*/, double baseRatio = 10.0, TString path = "plots/", TString format = ".pdf");// Plot function edepProjectPrimEnPartitioned
 // Dose
     std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/);                                            // Energy & dose 2D map using a mesh of size LxLx100 um3. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
-    // double doseForTinyMesh(int detNb, double meshSize, double range);                        //Obsolete
-    // double peakDose(int detNb=0, double meshSize = 0.100 /*mm*/);                            //Obsolete
+    std::vector<TH2D> doseXY(bool neutral, double meshSize = 0.100 /*mm*/);    // Energy & dose 2D map using a mesh of size LxLx100 um3. Contributions from only photons to the dose. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
 // Profile reconstruction    
-    // std::vector<TH1I> fitHits(double threshold, int* fitRange);                                          // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV. Return a 2-array with fit for upstream and downstream det.s
+    std::vector<TH1I> fitHits(double threshold, int* fitRange);                                          // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV. Return a 2-array with fit for upstream and downstream det.s
+    std::vector<TH1I> fitHits();// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Overloading
     double* fitHitsChi2(double threshold, int* fitRange);                                    // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV, fitRange is a 2-array with stripL, stripH where the fit is ranged.
     double* fitHitsChi2(double threshold = 1.);                                              // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Default threshold of 1keV and range 90,110.
     std::vector<TGraph2D> fitVSThrRng();                                                                 // 2D-graph of the chisquare as a function of threshold and range
     void plot_fitVSThrRng();                                                                 // Plot fitVSThrRng()
+// Other methods + unsorted
+    void overlayReconstructedBeamProfile();// Superimpose the beam profile of the primaries with the reconstructed one
+    int createReport(TString path = "plots/", TString format = ".pdf", TString ofilename = "out.root");// Save plots in the folder plots
+// Other
+    void toolsCumulativeProbabilityXYGaussian(double events = 1E5, float sig = 0.375, float mult = 1.);// This function explains the choose for the radius used in the average dose calculation.
 
 
 
@@ -670,34 +678,6 @@ std::vector<TH1D> edepSpectrumChg(int bins, double a, double b){
 std::vector<TH1D> edepSpectrumChg(){
     return edepSpectrumChg(1000, 0, 1000);
 }
-// Energy spectrum of depositions for the simulation in air and vacuum at comparison. It uses kyleBeam_9_100 
-// void eSpectrumAirVacuum(TString sel = "5"){
-//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0.root");
-//     TH1D air[2], vacuum[2];
-//     for(int i=0; i<2; i++){
-//         air[i] = edepSpectrum(i)[0];
-//         air[i].SetStats(0);
-//     }
-
-//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0_vacuum.root");
-//     for(int i=0; i<2; i++){
-//         vacuum[i] = edepSpectrum(i)[0];
-//         vacuum[i].SetLineColor(kRed);
-//         vacuum[i].SetStats(0);
-//     }
-
-//     TLegend* legend[2];
-//     for(int i=0; i<2; i++){
-//         TCanvas* compCanvas = new TCanvas("eSpectrumAirVacuum"+whichDetShort(i), "Comparison");
-//         vacuum[i].DrawClone();
-//         air[i].DrawClone("same");
-
-//         legend[i] = new TLegend(1.0-0.4, 0.7, 1.0-0.1, 0.9);
-//         legend[i]->AddEntry(&air[i], "air", "l");
-//         legend[i]->AddEntry(&vacuum[i], "vacuum", "l");
-//         legend[i]->DrawClone();
-//     }
-// }
 // Histogram the energy spectrum of the hit stripNb
 std::vector<TH1D> eSpectrumStrip(int stripNb = 100, float range = 5.){
     int binsNb = 100;
@@ -858,7 +838,7 @@ std::vector<TH1D> edepProject(double meshSize = 0.100){
     return retVar;
 }
 
-
+//NEW
 // Energy deposition in the transverse XY plane. Either X or Y profile by selecting the returned value [0] det0X [1] det0Y [2] det1X [3] det1Y
 std::vector<TH1D> edepProject(bool filter, double meshSize = 0.100){
     // Select events with the given filter (for now hard-coded below). Now is selects non-gamma particles
@@ -2085,7 +2065,6 @@ std::vector<TGraph2D> fitVSThrRng(){
     }
     return retVar;
 }
-
 // Plot fitVSThrRng()
 void plot_fitVSThrRng(){
     std::vector<TGraph2D> chiSGraph = fitVSThrRng();
@@ -2095,42 +2074,11 @@ void plot_fitVSThrRng(){
     new TCanvas();
     chiSGraph[1].DrawClone("surf1");
 }
-
-
-
-
-
-
-
 /*
 * ******************************************************************************************************************************************
-* NEW METHODS!!!
+* Create report with all the major analysis - 1.5/3 minutes
 * ******************************************************************************************************************************************
 */
-
-// Superimpose the beam profile of the primaries with the reconstructed one
-void overlayReconstructedBeamProfile(){
-    TH2D primaryEPro = primaryEnergyProfile()[0];
-    TH1D* primProjX = primaryEPro.ProjectionX();
-
-    double scale;
-    scale = primProjX->GetXaxis()->GetBinWidth(1)/(primProjX->Integral());
-    primProjX->Scale(scale);
-    primProjX->Draw("hist");
-
-    std::vector<TH1D> detEPro = edepProject();
-    TH1D det0XProj = detEPro[0];
-    scale = det0XProj.GetXaxis()->GetBinWidth(1)/(det0XProj.Integral());
-    det0XProj.Scale(scale);
-    det0XProj.SetLineColor(kRed);
-    det0XProj.DrawClone("hist same");
-}
-
-
-
-
-
-
 // Save plots in the folder plots
 int createReport(TString path = "plots/", TString format = ".pdf", TString ofilename = "out.root"){
     int verbosityLevel_bak = verbosityLevel;
@@ -2378,7 +2326,29 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
 }
 
 
+/*
+* ******************************************************************************************************************************************
+* NEW METHODS!!!
+* ******************************************************************************************************************************************
+*/
 
+// Superimpose the beam profile of the primaries with the reconstructed one
+void overlayReconstructedBeamProfile(){
+    TH2D primaryEPro = primaryEnergyProfile()[0];
+    TH1D* primProjX = primaryEPro.ProjectionX();
+
+    double scale;
+    scale = primProjX->GetXaxis()->GetBinWidth(1)/(primProjX->Integral());
+    primProjX->Scale(scale);
+    primProjX->Draw("hist");
+
+    std::vector<TH1D> detEPro = edepProject();
+    TH1D det0XProj = detEPro[0];
+    scale = det0XProj.GetXaxis()->GetBinWidth(1)/(det0XProj.Integral());
+    det0XProj.Scale(scale);
+    det0XProj.SetLineColor(kRed);
+    det0XProj.DrawClone("hist same");
+}
 /*
 * ******************************************************************************************************************************************
 * Count events around an axis, assuming radial symmetry - START
@@ -2419,12 +2389,12 @@ void toolsCumulativeProbabilityXYGaussian(double events = 1E5, float sig = 0.375
     sigmaFit->Draw("same");
 }
 void macro(){}
+
 /*
 * ******************************************************************************************************************************************
 * Utilities
 * ******************************************************************************************************************************************
 */
-// 
 // void exportBruschi(){
 //     TCanvas* resultCanvas = new TCanvas("resultCanvas", "Plots", 1000, 600);
 //     resultCanvas->Divide(2,2);
@@ -2470,12 +2440,39 @@ void macro(){}
 //     exportDAT(projYDet1, "det1_edepY.txt");
 //     exportCSV(projYDet1, "det1_edepY.csv");
 // }
-
 /*
 * ******************************************************************************************************************************************
-* Old methods - obsolete/unuseful
+* Old methods - obsolete/unuseful (kept here because they have useful things accesible by the search tool)
 * ******************************************************************************************************************************************
 */
+// Energy spectrum of depositions for the simulation in air and vacuum at comparison. It uses kyleBeam_9_100 
+// void eSpectrumAirVacuum(TString sel = "5"){
+//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0.root");
+//     TH1D air[2], vacuum[2];
+//     for(int i=0; i<2; i++){
+//         air[i] = edepSpectrum(i)[0];
+//         air[i].SetStats(0);
+//     }
+
+//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0_vacuum.root");
+//     for(int i=0; i<2; i++){
+//         vacuum[i] = edepSpectrum(i)[0];
+//         vacuum[i].SetLineColor(kRed);
+//         vacuum[i].SetStats(0);
+//     }
+
+//     TLegend* legend[2];
+//     for(int i=0; i<2; i++){
+//         TCanvas* compCanvas = new TCanvas("eSpectrumAirVacuum"+whichDetShort(i), "Comparison");
+//         vacuum[i].DrawClone();
+//         air[i].DrawClone("same");
+
+//         legend[i] = new TLegend(1.0-0.4, 0.7, 1.0-0.1, 0.9);
+//         legend[i]->AddEntry(&air[i], "air", "l");
+//         legend[i]->AddEntry(&vacuum[i], "vacuum", "l");
+//         legend[i]->DrawClone();
+//     }
+// }
 // Impact of charged particles to the spectrum of deposited energy. Return a 2-array with the spectrum of energy deposited in upstream/downstream detector in the range [a,b] with #bins. Sel is a selector for the values \xi={"5.0", "7.0", "10.0"} 
 // int eSpectrumChgCanvas(int binsIn, double a, double b, TString path = "plots/", TString format = ".pdf"){
 //     static const int bins = binsIn;
