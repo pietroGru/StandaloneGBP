@@ -180,28 +180,12 @@ TString whichConfigIs(){
     }
     return spec;
 }
-
 // Log in a base base
 double log(double base, double x){
     return std::log(x) / std::log(base);
 }
 
-// Tool
-void BinLogX(TH1*h){
-   TAxis *axis = h->GetXaxis();
-   int bins = axis->GetNbins();
 
-   Axis_t from = axis->GetXmin();
-   Axis_t to = axis->GetXmax();
-   Axis_t width = (to - from) / bins;
-   Axis_t *new_bins = new Axis_t[bins + 1];
-
-   for (int i = 0; i <= bins; i++) {
-     new_bins[i] = TMath::Power(10, from + i * width);
-   }
-   axis->Set(bins, new_bins);
-   delete[] new_bins;
-}
 
 // Primary particle monitor
 std::vector<TH1D> beamMonitor(int bins = 400, float range = 2, bool autobin = false){
@@ -841,182 +825,6 @@ std::vector<TH1D> edepProject(double meshSize = 0.100){
     }
     return retVar;
 }
-
-//NEW
-// Energy deposition in the transverse XY plane. Either X or Y profile by selecting the returned value [0] det0X [1] det0Y [2] det1X [3] det1Y
-std::vector<TH1D> edepProject(bool filter, double meshSize = 0.100){
-    // Select events with the given filter (for now hard-coded below). Now is selects non-gamma particles
-    // Upstream detector.
-    // Selection happens using the event ID since primary particles are spawned at the surface of the upstream sapphire.
-    std::vector<int> pSelListU;
-    int eventSelU, pdgSelU;
-    primaryTree->SetBranchAddress("event", &eventSelU);
-    primaryTree->SetBranchAddress("pdg", &pdgSelU);
-    Long64_t primaryEntries = primaryTree->GetEntries();
-    if(verbosityLevel>0) cout << "primaryTree has " << primaryEntries << " entries. Looping over entries...\n";
-    resetProgress();
-    for(Long64_t i=0; i< primaryEntries; i++ ){
-        float status = (float)(i+1) / primaryEntries;
-        printProgress(status);
-        
-        primaryTree->GetEntry(i);
-        if(pdgSelU != 22) pSelListU.push_back(i);
-    }
-    Long64_t selUNb = pSelListU.size();
-    if(verbosityLevel>0) cout << "Non-photons entering the upstream detector: " << selUNb <<  endl;
-    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
-    std::sort(pSelListU.begin(), pSelListU.end());
-    
-    // Downstream detector.
-    // Selection happens using the track ID and the charge scoring plane tree
-    class pSelListDCl {
-        public:
-        pSelListDCl(int event, int track){ eventID = event; trackID= track;};
-        ~pSelListDCl(){};
-
-        int getEvent(){ return eventID;}
-        int getTrack(){ return trackID;}
-
-        private:
-        int eventID;
-        int trackID;
-    };
-    std::vector<pSelListDCl> pSelListD; // Track IDs of the particles entering the downstream detector, and satifying the filter condition
-    int eventSelD, trackSelD, pdgSelD;
-    planeTree->SetBranchAddress("event", &eventSelD);
-    planeTree->SetBranchAddress("track", &trackSelD);
-    planeTree->SetBranchAddress("pdg", &pdgSelD);
-    Long64_t planeEntries = planeTree->GetEntries();
-    if(verbosityLevel>0) cout << "planeTree has " << planeEntries << " entries. Looping over entries...\n";
-    resetProgress();
-    for(Long64_t i=0; i< planeEntries; i++ ){
-        float status = (float)(i+1) / planeEntries;
-        printProgress(status);
-        
-        planeTree->GetEntry(i);
-        if(pdgSelD != 22){
-            pSelListDCl tmp(eventSelD, trackSelD);
-            pSelListD.push_back(tmp);
-        }
-    }
-    Long64_t selDNb = pSelListD.size();
-    if(verbosityLevel>0) cout << "Non-photons entering the downstream detector: " << selDNb <<  endl;
-    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
-    //std::sort(pSelListD.begin(), pSelListD.end());    // They are sorted by contruction
-
-    // Dose code with some minor modifications
-    const int binsNb = 20./meshSize;
-    double totEnergy[2] = {0};
-
-    TH2D* edepXYHist[2];
-    TH2D* edepXYSelHist[2];
-    for(int i=0; i<2; i++){
-        edepXYHist[i] = new TH2D(TString::Format("edepXYHist%i",i), "Energy dep. XY map in the " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", binsNb, -10, 10, binsNb, -10, 10);
-        edepXYSelHist[i] = new TH2D(TString::Format("edepXYSelHist%i",i), "non-photons primaries " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", binsNb, -10, 10, binsNb, -10, 10);
-        // Style
-        // edepXYHist[i]->SetStats(0);
-        edepXYHist[i]->SetContour(500);
-        edepXYSelHist[i]->SetContour(500);
-        edepXYSelHist[i]->SetLineColor(kRed);
-    }
-
-    if(verbosityLevel>0) cout << "Filling the histogram..." << endl;
-    int event, track, det, pdg; double x, y; double edep;
-    debugTree->SetBranchAddress("event", &event);           // Event ID
-    debugTree->SetBranchAddress("track", &track);           // Track ID
-    debugTree->SetBranchAddress("det", &det);               // 0,1
-    debugTree->SetBranchAddress("x", &x);                   // mm
-    debugTree->SetBranchAddress("y", &y);                   // mm
-    debugTree->SetBranchAddress("edep", &edep);             // keV
-    debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
-    Long64_t debugEntries = debugTree->GetEntries();
-
-    int pU0=0; int pD0=0;
-    resetProgress();
-    for(Long64_t i=0; i< debugEntries; i++ ){
-        debugTree->GetEntry(i);
-        float status = (float)(i+1)/(float)debugEntries;
-        printProgress(status);
-        if(det >= 2) continue;  
-        totEnergy[det] += edep;
-        // Filling energy depositions from all the primaries.
-        edepXYHist[det]->Fill(x, y, edep);
-
-        // Filling energy depositions from selected 'filter' primaries
-        if(det==0){
-            for(int j=pU0; j<selUNb; j++){
-                int val=pSelListU[j];
-                if(event < val){
-                    break;
-                }else if(event == val){
-                    // cout << i << ": " << event << ", " << track << ", " << whichDetShort(det) << ", " << pdg << ", (" << x << "," << y << "), " <<  edep << "\tchg\n";
-                    edepXYSelHist[det]->Fill(x, y, edep);
-                    pU0=j;
-                    break;
-                }
-            }
-        }else{
-            for(int j_events=pD0; j_events<selDNb; j_events++){
-                auto pSelClass_ith = pSelListD[j_events];
-                int evtOf_ith_class = pSelClass_ith.getEvent();
-                int trkOf_ith_class = pSelClass_ith.getTrack();
-                if(event < evtOf_ith_class){
-                    break;
-                }else if(event == evtOf_ith_class){
-                    if(track == trkOf_ith_class){
-                        // cout << i << ": " << event << ", " << track << ", " << whichDetShort(det) << ", " << pdg << ", (" << x << "," << y << "), " << edep << "\tchg\n";
-                        edepXYSelHist[det]->Fill(x, y, edep);
-                    }
-                    pD0=j_events;
-                    break;
-                }
-            }
-        }
-    }
-
-
-    // Verbose messages
-    if(verbosityLevel>1){
-        cout << "Mesh size [um]: "  << meshSize*1000.           << endl;
-        cout << "Mesh blocks: "     << binsNb<<'x'<<binsNb      << endl;
-        cout    << "\n\n";
-    }
-    
-    std::vector<TH1D> edepProj;
-    for(int i=0; i<2; i++){
-        edepProj.push_back(TH1D(*edepXYHist[i]->ProjectionX()));
-        edepProj.push_back(TH1D(*edepXYHist[i]->ProjectionY()));
-    }
-    for(int i=0; i<2; i++){
-        edepProj.push_back(TH1D(*edepXYSelHist[i]->ProjectionX()));
-        edepProj.push_back(TH1D(*edepXYSelHist[i]->ProjectionY()));
-    }
-    for(int i=0; i<8; i++){
-        edepProj[i].GetYaxis()->SetTitle("Deposited energy / BX [keV]");
-    }
-
-    if(verbosityLevel>0){
-        TCanvas* edepProjectCanvas = new TCanvas("edepProjectCanvas", "Energy deposition in the transverse XY plane", 1200, 600);
-        edepProjectCanvas->Divide(2,2);
-        for(int j=0; j<2; j++){
-            for(int i=2*j; i<2*j+2; i++){
-                edepProjectCanvas->cd(i+1);
-                edepProjectCanvas->SetGridx(); edepProjectCanvas->SetGridy();
-                TLegend* legend = new TLegend(1-0.4,0.7,1-0.1,0.9);
-                legend->SetHeader("Initial beam particles accounted:","L"); // option "C" allows to center the header
-                legend->AddEntry(&edepProj[i],TString::Format("#gamma, other - %i entries",(int)edepProj[i].GetEntries()),"l");
-                legend->AddEntry(&edepProj[i+4],TString::Format("other    - %i entries",(int)edepProj[i+4].GetEntries()),"l");
-                edepProj[i].DrawClone("hist");
-                edepProj[i+4].DrawClone("hist same");
-                legend->Draw();
-            }
-        }
-    }
-    
-    return edepProj;
-}
-
-
 // Energy deposition profile in the strips. It uses the strip tree data. Return a 2-array for det0 and 1
 std::vector<TH1D> edepProjectStripTree(){
     TH1D* result[2];
@@ -1762,7 +1570,179 @@ std::vector<TH2D> doseXY(bool neutral, double meshSize = 0.100 /*mm*/){
     }
     return retVar;
 }
+//NEW
+// Energy deposition in the transverse XY plane. Either X or Y profile by selecting the returned value [0] det0X [1] det0Y [2] det1X [3] det1Y
+std::vector<TH1D> edepProject(bool filter, double meshSize = 0.100){
+    // Select events with the given filter (for now hard-coded below). Now is selects non-gamma particles
+    // Upstream detector.
+    // Selection happens using the event ID since primary particles are spawned at the surface of the upstream sapphire.
+    std::vector<int> pSelListU;
+    int eventSelU, pdgSelU;
+    primaryTree->SetBranchAddress("event", &eventSelU);
+    primaryTree->SetBranchAddress("pdg", &pdgSelU);
+    Long64_t primaryEntries = primaryTree->GetEntries();
+    if(verbosityLevel>0) cout << "primaryTree has " << primaryEntries << " entries. Looping over entries...\n";
+    resetProgress();
+    for(Long64_t i=0; i< primaryEntries; i++ ){
+        float status = (float)(i+1) / primaryEntries;
+        printProgress(status);
+        
+        primaryTree->GetEntry(i);
+        if(pdgSelU != 22) pSelListU.push_back(i);
+    }
+    Long64_t selUNb = pSelListU.size();
+    if(verbosityLevel>0) cout << "Non-photons entering the upstream detector: " << selUNb <<  endl;
+    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
+    std::sort(pSelListU.begin(), pSelListU.end());
+    
+    // Downstream detector.
+    // Selection happens using the track ID and the charge scoring plane tree
+    class pSelListDCl {
+        public:
+        pSelListDCl(int event, int track){ eventID = event; trackID= track;};
+        ~pSelListDCl(){};
 
+        int getEvent(){ return eventID;}
+        int getTrack(){ return trackID;}
+
+        private:
+        int eventID;
+        int trackID;
+    };
+    std::vector<pSelListDCl> pSelListD; // Track IDs of the particles entering the downstream detector, and satifying the filter condition
+    int eventSelD, trackSelD, pdgSelD;
+    planeTree->SetBranchAddress("event", &eventSelD);
+    planeTree->SetBranchAddress("track", &trackSelD);
+    planeTree->SetBranchAddress("pdg", &pdgSelD);
+    Long64_t planeEntries = planeTree->GetEntries();
+    if(verbosityLevel>0) cout << "planeTree has " << planeEntries << " entries. Looping over entries...\n";
+    resetProgress();
+    for(Long64_t i=0; i< planeEntries; i++ ){
+        float status = (float)(i+1) / planeEntries;
+        printProgress(status);
+        
+        planeTree->GetEntry(i);
+        if(pdgSelD != 22){
+            pSelListDCl tmp(eventSelD, trackSelD);
+            pSelListD.push_back(tmp);
+        }
+    }
+    Long64_t selDNb = pSelListD.size();
+    if(verbosityLevel>0) cout << "Non-photons entering the downstream detector: " << selDNb <<  endl;
+    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
+    //std::sort(pSelListD.begin(), pSelListD.end());    // They are sorted by contruction
+
+    // Dose code with some minor modifications
+    const int binsNb = 20./meshSize;
+    double totEnergy[2] = {0};
+
+    TH2D* edepXYHist[2];
+    TH2D* edepXYSelHist[2];
+    for(int i=0; i<2; i++){
+        edepXYHist[i] = new TH2D(TString::Format("edepXYHist%i",i), "Energy dep. XY map in the " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", binsNb, -10, 10, binsNb, -10, 10);
+        edepXYSelHist[i] = new TH2D(TString::Format("edepXYSelHist%i",i), "non-photons primaries " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", binsNb, -10, 10, binsNb, -10, 10);
+        // Style
+        // edepXYHist[i]->SetStats(0);
+        edepXYHist[i]->SetContour(500);
+        edepXYSelHist[i]->SetContour(500);
+        edepXYSelHist[i]->SetLineColor(kRed);
+    }
+
+    if(verbosityLevel>0) cout << "Filling the histogram..." << endl;
+    int event, track, det, pdg; double x, y; double edep;
+    debugTree->SetBranchAddress("event", &event);           // Event ID
+    debugTree->SetBranchAddress("track", &track);           // Track ID
+    debugTree->SetBranchAddress("det", &det);               // 0,1
+    debugTree->SetBranchAddress("x", &x);                   // mm
+    debugTree->SetBranchAddress("y", &y);                   // mm
+    debugTree->SetBranchAddress("edep", &edep);             // keV
+    debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
+    Long64_t debugEntries = debugTree->GetEntries();
+
+    int pU0=0; int pD0=0;
+    resetProgress();
+    for(Long64_t i=0; i< debugEntries; i++ ){
+        debugTree->GetEntry(i);
+        float status = (float)(i+1)/(float)debugEntries;
+        printProgress(status);
+        if(det >= 2) continue;  
+        totEnergy[det] += edep;
+        // Filling energy depositions from all the primaries.
+        edepXYHist[det]->Fill(x, y, edep);
+
+        // Filling energy depositions from selected 'filter' primaries
+        if(det==0){
+            for(int j=pU0; j<selUNb; j++){
+                int val=pSelListU[j];
+                if(event < val){
+                    break;
+                }else if(event == val){
+                    // cout << i << ": " << event << ", " << track << ", " << whichDetShort(det) << ", " << pdg << ", (" << x << "," << y << "), " <<  edep << "\tchg\n";
+                    edepXYSelHist[det]->Fill(x, y, edep);
+                    pU0=j;
+                    break;
+                }
+            }
+        }else{
+            for(int j_events=pD0; j_events<selDNb; j_events++){
+                auto pSelClass_ith = pSelListD[j_events];
+                int evtOf_ith_class = pSelClass_ith.getEvent();
+                int trkOf_ith_class = pSelClass_ith.getTrack();
+                if(event < evtOf_ith_class){
+                    break;
+                }else if(event == evtOf_ith_class){
+                    if(track == trkOf_ith_class){
+                        // cout << i << ": " << event << ", " << track << ", " << whichDetShort(det) << ", " << pdg << ", (" << x << "," << y << "), " << edep << "\tchg\n";
+                        edepXYSelHist[det]->Fill(x, y, edep);
+                    }
+                    pD0=j_events;
+                    break;
+                }
+            }
+        }
+    }
+
+
+    // Verbose messages
+    if(verbosityLevel>1){
+        cout << "Mesh size [um]: "  << meshSize*1000.           << endl;
+        cout << "Mesh blocks: "     << binsNb<<'x'<<binsNb      << endl;
+        cout    << "\n\n";
+    }
+    
+    std::vector<TH1D> edepProj;
+    for(int i=0; i<2; i++){
+        edepProj.push_back(TH1D(*edepXYHist[i]->ProjectionX()));
+        edepProj.push_back(TH1D(*edepXYHist[i]->ProjectionY()));
+    }
+    for(int i=0; i<2; i++){
+        edepProj.push_back(TH1D(*edepXYSelHist[i]->ProjectionX()));
+        edepProj.push_back(TH1D(*edepXYSelHist[i]->ProjectionY()));
+    }
+    for(int i=0; i<8; i++){
+        edepProj[i].GetYaxis()->SetTitle("Deposited energy / BX [keV]");
+    }
+
+    if(verbosityLevel>0){
+        TCanvas* edepProjectCanvas = new TCanvas("edepProjectCanvas", "Energy deposition in the transverse XY plane", 1200, 600);
+        edepProjectCanvas->Divide(2,2);
+        for(int j=0; j<2; j++){
+            for(int i=2*j; i<2*j+2; i++){
+                edepProjectCanvas->cd(i+1);
+                edepProjectCanvas->SetGridx(); edepProjectCanvas->SetGridy();
+                TLegend* legend = new TLegend(1-0.4,0.7,1-0.1,0.9);
+                legend->SetHeader("Initial beam particles accounted:","L"); // option "C" allows to center the header
+                legend->AddEntry(&edepProj[i],TString::Format("#gamma, other - %i entries",(int)edepProj[i].GetEntries()),"l");
+                legend->AddEntry(&edepProj[i+4],TString::Format("other    - %i entries",(int)edepProj[i+4].GetEntries()),"l");
+                edepProj[i].DrawClone("hist");
+                edepProj[i+4].DrawClone("hist same");
+                legend->Draw();
+            }
+        }
+    }
+    
+    return edepProj;
+}
 
 
 /*
