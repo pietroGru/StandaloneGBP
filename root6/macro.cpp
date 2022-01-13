@@ -5,7 +5,6 @@ t0 - Event tree
     0 - event           It stores the event identifier.
     1 - det             It is either 0 or 1. It can be used to discriminate between the two sensitive detectors.
     2 - edep            The energy deposition (keV) in the hit.
-
 t1 - Detector tree
 It is like a digitization tree. The ditigization is made by discretizing the hit positions over the SD elements (X-strips/Z-layers).
     0 - event           It stores the event identifier.
@@ -68,7 +67,7 @@ double gausBSigma[2] = {375.0, 375.0}; //um
 double detThickness = 100.0; //um 
 
 
-TString ifilename = "kyle/kyleBeam_9_50_0.root";
+TString ifilename = "kyle/kyleBeam_6_50_0.root";
 TFile* input = new TFile(ifilename, "read");
 TTree* eventTree        = (TTree*)input->Get("t0");
 TTree* detTree          = (TTree*)input->Get("t1");
@@ -86,40 +85,55 @@ TTree* debugTree        = (TTree*)input->Get("t6");
     int getConfig(TString);
     inline int getConfig(){ return getConfig(ifilename); }
 // Primary
-    std::vector<TH1D> beamMonitor(int bins = 400, float range = 2, bool autobin = false);                // Primary particle monitor
-    std::vector<TH1D> primarySpectrum();                                                                  // Energy spectrum of primaries
-    std::vector<TH1D> primarySpectrum(int pdg, double range = 10.0);                                     // Energy spectrum of primaries with the given pdg code. Return 2-array with 0-pdgfiltered, 1-all part.s
-    std::vector<TH2D> primaryProfile(int pdg=11);                                                                   // Number XY profile of the particles.
-    //TH2D primaryProfile(int pdg);                                                          // Number XY profile of the particles.  Filter for particles with given pdg code
-    std::vector<TH2D> primaryEnergyProfile();                                                             // Energy XY profile of the particles. Each point (x,y) is weightned with the corresponding energy
-    //TH2D primaryEnergyProfile(int pdg);                                                    // Energy XY profile of the particles. Each point (x,y) is weightned with the corresponding energy. Filter for particles with given pdg code
-    void overlayBeamProfiles();                                                              // Superimpose the beam profile of the primaries with the reconstructed one
+    std::vector<TH1D> beamMonitor(int bins = 400, float range = 2);                             // Primary particle monitor
+    std::vector<TH1D> beamMonitor(int pdg, int bins = 400, float range = 2);                    // Primary particle monitor for initial particles with assigned pdg code
+    std::vector<TH2D> primaryProfile(int pdg=11);                                               // Number XY profile of the particles. Filter for particles with given pdg code
+    std::vector<TH1D> primarySpectrum();                                                        // Energy spectrum of primaries
+    std::vector<TH1D> primarySpectrum(int pdg, double range = 10.0);                            // Energy spectrum of primaries with the given pdg code. Return 2-array with 0-pdgfiltered, 1-all part.s
+    std::vector<TH1D> primarySpectrumLogLog(int pdg, double lowRange = 1E-9,                    // Energy spectrum of primaries with the given pdg code, with variable size bins. Return 2-array with 0-pdgfiltered, 1-all part.s
+        double highRange = 16.0, int binsNb = 100);
+    std::vector<TH2D> primaryEnergyProfile();                                                   // Energy XY profile of the particles. Each point (x,y) is weightned with the corresponding energy
 // Energy deposition plots
-    std::vector<TH1D> edepSpectrum(int bins, float emin, float emax);                                         // Energy spectrum of depositions for the upstream/downstream detector
-    // std::vector<TH1D> edepSpectrumPartitioned(int bins, float emin, float emax);
-    // std::vector<TH1D> edepSpectrumChg(int bins, double a, double b);                                  // Energy spectrum of depositions for selected particles. Return a 2-array with the spectrum of energy deposited in upstream/downstream detector in the range [a,b] with #bins. Sel is a selector for the values \xi={"5.0", "7.0", "10.0"}
-    // std::vector<TH1D> edepSpectrumChg();                                                                    // Energy spectrum of depositions for selected particles. Default energy range 0-1000 and 1000 bins.
-    std::vector<TH1D> eSpectrumStrip(int stripNb = 100, float range = 5.);                   // Energy spectrum of depositions in a given strip number for some det#
-    double totalEdep(int detNb=0);                                                           // Energy deposited in detNb in KeV
-    double* eStrip_array(int stripNb = 100);                                                 // 2-array of energy deposited in the strip 100 for upstream/downstream detectors in KeV
-    double eStrip(int detNb=0, int stripNb = 100);                                           // Energy deposited in the strip 'stripNb' of detector 'detNb' in KeV
-    double eStrip(int detNb=0, int stripNb = 100, float range = 1.);                         // Energy spectrum of depositions in a given strip number. Return energy deposited in KeV
-    std::vector<TH1D> eLongitudinal_array(int nbBins = 100);                                             // Longitudinal energy deposition profile. Custom binning available. Return 2-array with det0 and det1 plots
-    TH1D eLongitudinal(int detNb);                                                           // Longitudinal energy deposition profile for detNb
-    TH1D eLongitudinal(int detNb, int nbBins);                                               // Longitudinal energy deposition profile for detNb with custom binning.
-    std::vector<TH1D> edepProject(double meshSize = 0.100);                                              // Energy deposition in the transverse plane. Return 4-array [0]det0x, [1]det0y, [2]det1x, [3]ddet1y
-    std::vector<TH1D> edepProjectStripTree();                                                            // Energy deposition profile in the strips. It uses the strip tree data. Return a 2-array for det0 and 1
-    std::vector<TH1D> edepStripChg();                                                   // Energy deposition profile in the strips with comparison with deposition from charged primaries, fo the primaries in the energy range [enLow, enHigh]. It uses the strip tree data. Return a 2-array for det0 and 1
+    std::vector<TH1D> edepSpectrum(int bins, float emin, float emax);                           // Energy spectrum of depositions for the upstream/downstream detector
+    std::vector<TH1D> edepSpectrumPartitionedByPrimaryEnergies(int bins=1000,                   // Energy spectrum of depositions for the upstream/downstream detector in a window Ea-Eb, partitioned by primary energies. Energy in keV
+    double emin = 0.0 /*GeV*/, double emax= 6.0 /*GeV*/, double baseRatio = -1E6 /*keV*/);
+    std::vector<TH1D> edepSpectrumChg(int bins, double a, double b);                            // Energy spectrum of depositions for selected particles. Return a 2-array with the spectrum of energy deposited in upstream/downstream detector in the range [a,b] with #bins. Sel is a selector for the values \xi={"5.0", "7.0", "10.0"}
+    std::vector<TH1D> edepSpectrumChg();                                                        // Energy spectrum of depositions for selected particles. Default energy range 0-1000 and 1000 bins.
+    std::vector<TH1D> eSpectrumStrip(int stripNb = 100, float range = 5.);                      // Energy spectrum of depositions in a given strip number for some det#
+    double totalEdep(int detNb=0);                                                              // Energy deposited in detNb in keV
+    double* eStrip_array(int stripNb = 100);                                                    // 2-array of energy deposited in the strip 100 for upstream/downstream detectors in keV
+    double eStrip(int detNb=0, int stripNb = 100);                                              // Energy deposited in the strip 'stripNb' of detector 'detNb' in keV
+    // double eStrip(int detNb=0, int stripNb = 100, float range = 1.);                         // Energy spectrum of depositions in a given strip number. Return energy deposited in keV
+    std::vector<TH1D> eLongitudinal_array(int nbBins = 100);                                    // Longitudinal energy deposition profile. Custom binning available. Return 2-array with det0 and det1 plots
+    TH1D eLongitudinal(int detNb);                                                              // Longitudinal energy deposition profile for detNb
+    TH1D eLongitudinal(int detNb, int nbBins);                                                  // Longitudinal energy deposition profile for detNb with custom binning.
+    std::vector<TH1D> edepProject(double meshSize = 0.100);                                     // Energy deposition in the transverse plane. Return 4-array [0]det0x, [1]det0y, [2]det1x, [3]ddet1y
+    std::vector<TH1D> edepProject(bool filter, double meshSize = 0.100);                        // Energy deposition in the transverse plane for primaries with a selection filter (i.e. charge/neutral). Return 4-array [0]det0x, [1]det0y, [2]det1x, [3]ddet1y
+    std::vector<TH1D> edepProjectStripTree();                                                   // Energy deposition profile in the strips. It uses the strip tree data. Return a 2-array for det0 and 1
+    std::vector<TH1D> edepProjectStripTree(double pE0, double pE1);                             // Energy deposition profile in the strips given primaries in selected energy range [pE0, pE1] GeV. Return a 2-array for det0 and 1
+    std::vector<TH1D> edepStripChg();                                                           // Energy deposition profile in the strips with comparison with deposition from charged primaries, for the primaries in the energy range [enLow, enHigh]. It uses the strip tree data. Return a 2-array for det0 and 1
+    std::vector<TH1D> edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/,                      // Energy depositions in the strips separated between the contributions with different energies
+        double enHigh=10.0 /*GeV*/, double baseRatio = 10.0);
+    void plot_edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/,                              //TEMPDESCRIPTION-Plot function edepProjectPrimEnPartitioned
+        double enHigh=10.0 /*GeV*/, double baseRatio = 10.0, 
+        TString path = "plots/",TString format = ".pdf");
 // Dose
-    std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/);                                            // Energy & dose 2D map using a mesh of size LxLx100 um3. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
-    // double doseForTinyMesh(int detNb, double meshSize, double range);                        //Obsolete
-    // double peakDose(int detNb=0, double meshSize = 0.100 /*mm*/);                            //Obsolete
+    std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/);                                   // Energy & dose 2D map using a mesh of size LxLx100 um3. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
+    std::vector<TH2D> doseXY(bool neutral, double meshSize = 0.100 /*mm*/);                     // Energy & dose 2D map using a mesh of size LxLx100 um3. Contributions from only photons to the dose. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
 // Profile reconstruction    
-    // std::vector<TH1I> fitHits(double threshold, int* fitRange);                                          // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in KeV. Return a 2-array with fit for upstream and downstream det.s
-    double* fitHitsChi2(double threshold, int* fitRange);                                    // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in KeV, fitRange is a 2-array with stripL, stripH where the fit is ranged.
-    double* fitHitsChi2(double threshold = 1.);                                              // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Default threshold of 1KeV and range 90,110.
-    std::vector<TGraph2D> fitVSThrRng();                                                                 // 2D-graph of the chisquare as a function of threshold and range
-    void plot_fitVSThrRng();                                                                 // Plot fitVSThrRng()
+    std::vector<TH1I> fitHits(double threshold, int* fitRange);                                 // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV. Return a 2-array with fit for upstream and downstream det.s
+    std::vector<TH1I> fitHits();                                                                // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Overloading
+    double* fitHitsChi2(double threshold, int* fitRange);                                       // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV, fitRange is a 2-array with stripL, stripH where the fit is ranged.
+    double* fitHitsChi2(double threshold = 1.);                                                 // Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Default threshold of 1keV and range 90,110.
+    std::vector<TGraph2D> fitVSThrRng();                                                        // 2D-graph of the chisquare as a function of threshold and range
+    void plot_fitVSThrRng();                                                                    //TEMPDESCRIPTION-Plot fitVSThrRng()
+// Other methods + unsorted
+    void overlayReconstructedBeamProfile();                                                     // Superimpose the beam profile of the primaries with the reconstructed one
+    int createReport(TString path = "plots/", TString format = ".pdf",                          // Save plots in the folder plots
+        TString ofilename = "out.root");
+// Other
+    void toolsCumulativeProbabilityXYGaussian(double events = 1E5, float sig = 0.375,           // This function explains the choose for the radius used in the average dose calculation.
+        float mult = 1.);
 
 
 
@@ -167,31 +181,15 @@ TString whichConfigIs(){
     }
     return spec;
 }
-
 // Log in a base base
 double log(double base, double x){
     return std::log(x) / std::log(base);
 }
 
-// Tool
-void BinLogX(TH1*h){
-   TAxis *axis = h->GetXaxis();
-   int bins = axis->GetNbins();
 
-   Axis_t from = axis->GetXmin();
-   Axis_t to = axis->GetXmax();
-   Axis_t width = (to - from) / bins;
-   Axis_t *new_bins = new Axis_t[bins + 1];
-
-   for (int i = 0; i <= bins; i++) {
-     new_bins[i] = TMath::Power(10, from + i * width);
-   }
-   axis->Set(bins, new_bins);
-   delete[] new_bins;
-}
 
 // Primary particle monitor
-std::vector<TH1D> beamMonitor(int bins = 400, float range = 2, bool autobin = false){
+std::vector<TH1D> beamMonitor(int bins = 400, float range = 2){
     TH1D result[3];
     result[0] = TH1D("beamX", "Beam monitor;x [mm];counts", bins, -range, range);
     result[1] = TH1D("beamY", "Beam monitor;y [mm];counts", bins, -range, range);
@@ -213,6 +211,32 @@ std::vector<TH1D> beamMonitor(int bins = 400, float range = 2, bool autobin = fa
     }
     return retVar;
 }
+
+// Primary particle monitor for initial particles with assigned pdg code
+std::vector<TH1D> beamMonitor(int pdg, int bins = 400, float range = 2){
+    TH1D result[3];
+    result[0] = TH1D("beamX", "Beam monitor;x [mm];counts", bins, -range, range);
+    result[1] = TH1D("beamY", "Beam monitor;y [mm];counts", bins, -range, range);
+    result[2] = TH1D("beamZ", "Beam monitor;z [mm];counts", 110, -110, 0);
+    primaryTree->Project("beamX", "x0", TString::Format("pdg==%i", pdg));
+    primaryTree->Project("beamY", "y0", TString::Format("pdg==%i", pdg));
+    primaryTree->Project("beamZ", "z0", TString::Format("pdg==%i", pdg));
+    if(verbosityLevel > 0){
+        TCanvas* beamMonitorCanvas = new TCanvas("beamMonitorCanvas", "Primary particle monitor", 1600, 400);
+        beamMonitorCanvas->Divide(3);
+        for(int i=0; i<3; i++){
+            beamMonitorCanvas->cd(i+1);
+            result[i].DrawClone();
+        }
+    }
+    std::vector<TH1D> retVar;
+    for(int i=0; i<3; i++){
+        retVar.push_back(result[i]);
+    }
+    return retVar;
+}
+
+
 // Number XY profile of the particles.
 std::vector<TH2D> primaryProfile(int pdg=11){
     TH2D* primaryHist = new TH2D("primaryHist", "Transverse primaries profile / BX; x [mm]; y [mm]; counts", 200, -10., 10., 200, -10., 10.);
@@ -276,27 +300,30 @@ std::vector<TH1D> primarySpectrum(int pdg, double range = 10.0){
     return retVar;
 }
 // Energy spectrum of primaries with the given pdg code, with variable size bins. Return 2-array with 0-pdgfiltered, 1-all part.s
-std::vector<TH1D> primarySpectrumLogLog(int pdg, double range = 10.0){
-    // Creating the bins array
-    double* bins = (double*)malloc((100+1)*sizeof(double));
+std::vector<TH1D> primarySpectrumLogLog(int pdg, double lowRange = 1E-9, double highRange = 16.0, int binsNb = 100){
+    // Creating the bins array 
+    double* bins = (double*)malloc((binsNb+1)*sizeof(double));
     bins[0] = 0;
-    for(int i=0; i<100; i++){
-        bins[i+1] = 10.0 * (exp(i)-1);
-        cout << bins[i+1] << endl;
+    double N = (binsNb-1)/( 1 - (TMath::Log(lowRange)/TMath::Log(highRange)));
+    for(int i=0; i<binsNb; i++){
+        bins[binsNb-i] = pow(highRange, 1 - i/N);
+        // cout << bins[binsNb-i] << '\t';
     }
     // cout << "breakpoint A. pars: " << pdg << '\t' << range << endl;
-    TH1D* primaryeSpectrHist = new TH1D("primaryeSpectrHist", "Energy spectrum of primaries; energy [GeV]; counts", 100, bins);
-    TH1D* primaryeSpectrPDGHist = new TH1D("primaryeSpectrPDGHist", TString::Format("Energy spectrum of primaries with pdg == %i || pdg== %i; energy [GeV]; counts", pdg, -pdg), 100, bins);
+    TH1D* primaryeSpectrHist = new TH1D("primaryeSpectrLogBinsHist", "Energy spectrum of primaries; energy [GeV]; counts", binsNb, bins);
+    TH1D* primaryeSpectrPDGHist = new TH1D("primaryeSpectrPDGLogBinsHist", TString::Format("Energy spectrum of primaries with pdg == %i || pdg== %i; energy [GeV]; counts", pdg, -pdg), binsNb, bins);
     // cout << "breakpoint A2. pars: " <<  range*10.0 << '\t' <<  0 << '\t' << range << endl;
-    primaryTree->Project("primaryeSpectrHist", "ekin");
+    primaryTree->Project("primaryeSpectrLogBinsHist", "ekin");
     // cout << "breakpoint A22. pars: " <<  range*10.0 << '\t' <<  0 << '\t' << range << endl;
-    primaryTree->Project("primaryeSpectrPDGHist", "ekin", TString::Format("pdg==%i || pdg==%i",pdg, -pdg));
+    primaryTree->Project("primaryeSpectrPDGLogBinsHist", "ekin", TString::Format("pdg==%i || pdg==%i",pdg, -pdg));
     // cout << "breakpoint A3" << endl;
     primaryeSpectrPDGHist->SetLineColor(kRed);
+    primaryeSpectrHist->GetXaxis()->SetRangeUser(lowRange, 1.5*highRange);
+    primaryeSpectrPDGHist->GetXaxis()->SetRangeUser(lowRange, 1.5*highRange);
     if(verbosityLevel>0){
         TCanvas* primarySpectrumPDGCanvas = new TCanvas("primarySpectrumPDGCanvas", TString::Format("Energy spectrum of pdg==%i primaries", pdg));
         primarySpectrumPDGCanvas->SetGridx(); primarySpectrumPDGCanvas->SetGridy();
-        // primarySpectrumPDGCanvas->SetLogx(); primarySpectrumPDGCanvas->SetLogy();
+        primarySpectrumPDGCanvas->SetLogx(); primarySpectrumPDGCanvas->SetLogy();
         primaryeSpectrHist->DrawClone();
         primaryeSpectrPDGHist->DrawClone("same");
         cout << TString::Format("Total entries: %i, Chg. entries: %i\n", primaryeSpectrHist->GetEntries(), primaryeSpectrPDGHist->GetEntries());
@@ -344,7 +371,7 @@ std::vector<TH2D> primaryEnergyProfile(){
     return retVar;
 }
 // Event
-// Energy spectrum of depositions for the upstream/downstream detector in a window Ea-Eb. Energy in KeV
+// Energy spectrum of depositions for the upstream/downstream detector in a window Ea-Eb. Energy in keV
 std::vector<TH1D> edepSpectrum(int bins, float emin, float emax){
     TH1D* totEdepdet0 = new TH1D("eSpectrumdet0", "Energy spectrum in the upstream detector;Deposited energy [keV];", bins, emin, emax);
     TH1D* totEdepdet1 = new TH1D("eSpectrumdet1", "Energy spectrum in the downstream detector;Deposited energy [keV];", bins, emin, emax);
@@ -363,7 +390,7 @@ std::vector<TH1D> edepSpectrum(int bins, float emin, float emax){
     delete totEdepdet0, totEdepdet1;
     return retVar;
 }
-// Energy spectrum of depositions for the upstream/downstream detector in a window Ea-Eb, partitioned by primary energies. Energy in KeV 
+// Energy spectrum of depositions for the upstream/downstream detector in a window Ea-Eb, partitioned by primary energies. Energy in keV 
 std::vector<TH1D> edepSpectrumPartitionedByPrimaryEnergies(int bins=1000, double emin = 0.0 /*GeV*/, double emax= 6.0 /*GeV*/, double baseRatio = -1E6 /*keV*/){
     // Lambda function for formatting energy //input in GeV
     auto formatEnergy = [](double x){
@@ -373,7 +400,7 @@ std::vector<TH1D> edepSpectrumPartitionedByPrimaryEnergies(int bins=1000, double
         }else if(0.001<=x && x<0.1){
             unit = TString::Format("%.2f MeV", x*1E3);
         }else if(0.000001<=x && x<0.001){
-            unit = TString::Format("%.2f KeV", x*1E6);
+            unit = TString::Format("%.2f keV", x*1E6);
         }else if(x<0.000001){
             unit = TString::Format("%.2f eV", x*1E9);
         }else{
@@ -628,10 +655,10 @@ std::vector<TH1D> edepSpectrumChg(int bins, double a, double b){
     std::vector<TH1D> eSpectrTotHist = edepSpectrum(bins, a, b);
     verbosityLevel = verbosityLevel_bak;
     for(int i=0; i<2; i++){
-        eSpectrChgHist[i]->GetXaxis()->SetTitle("Energy [KeV]");
+        eSpectrChgHist[i]->GetXaxis()->SetTitle("Energy [keV]");
         eSpectrChgHist[i]->GetYaxis()->SetTitle("counts");
 
-        eSpectrTotHist[i].GetXaxis()->SetTitle("Energy [KeV]");
+        eSpectrTotHist[i].GetXaxis()->SetTitle("Energy [keV]");
         eSpectrTotHist[i].GetYaxis()->SetTitle("counts");
 
         eSpectrTotHist[i].SetStats(0);
@@ -666,39 +693,11 @@ std::vector<TH1D> edepSpectrumChg(int bins, double a, double b){
 std::vector<TH1D> edepSpectrumChg(){
     return edepSpectrumChg(1000, 0, 1000);
 }
-// Energy spectrum of depositions for the simulation in air and vacuum at comparison. It uses kyleBeam_9_100 
-// void eSpectrumAirVacuum(TString sel = "5"){
-//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0.root");
-//     TH1D air[2], vacuum[2];
-//     for(int i=0; i<2; i++){
-//         air[i] = edepSpectrum(i)[0];
-//         air[i].SetStats(0);
-//     }
-
-//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0_vacuum.root");
-//     for(int i=0; i<2; i++){
-//         vacuum[i] = edepSpectrum(i)[0];
-//         vacuum[i].SetLineColor(kRed);
-//         vacuum[i].SetStats(0);
-//     }
-
-//     TLegend* legend[2];
-//     for(int i=0; i<2; i++){
-//         TCanvas* compCanvas = new TCanvas("eSpectrumAirVacuum"+whichDetShort(i), "Comparison");
-//         vacuum[i].DrawClone();
-//         air[i].DrawClone("same");
-
-//         legend[i] = new TLegend(1.0-0.4, 0.7, 1.0-0.1, 0.9);
-//         legend[i]->AddEntry(&air[i], "air", "l");
-//         legend[i]->AddEntry(&vacuum[i], "vacuum", "l");
-//         legend[i]->DrawClone();
-//     }
-// }
 // Histogram the energy spectrum of the hit stripNb
 std::vector<TH1D> eSpectrumStrip(int stripNb = 100, float range = 5.){
     int binsNb = 100;
-    TH1D* edepSpectrdet0Hist = new TH1D("edepSpectrdet0Hist", TString::Format("Energy spectrum for the strip %i for the upstream detector;energy [KeV]; counts",stripNb), binsNb, 0., range);
-    TH1D* edepSpectrdet1Hist = new TH1D("edepSpectrdet1Hist", TString::Format("Energy spectrum for the strip %i for the downstream detector;energy [KeV]; counts",stripNb), binsNb, 0., range);
+    TH1D* edepSpectrdet0Hist = new TH1D("edepSpectrdet0Hist", TString::Format("Energy spectrum for the strip %i for the upstream detector;energy [keV]; counts",stripNb), binsNb, 0., range);
+    TH1D* edepSpectrdet1Hist = new TH1D("edepSpectrdet1Hist", TString::Format("Energy spectrum for the strip %i for the downstream detector;energy [keV]; counts",stripNb), binsNb, 0., range);
     for(int det=0; det<2; det++){
         detTree->Project(TString::Format("edepSpectrdet%iHist", det), "edep", TString::Format("det==%i && strip==%i", det, stripNb));
     }
@@ -717,7 +716,7 @@ std::vector<TH1D> eSpectrumStrip(int stripNb = 100, float range = 5.){
     return retVar;
     
 }
-// Return the total energy deposited in detNb in KeV! Print out in GeV.
+// Return the total energy deposited in detNb in keV! Print out in GeV.
 double totalEdep(int detNb=0){
     int det; double edepDet;
     eventTree->SetBranchAddress("det", &det);
@@ -743,7 +742,7 @@ double* eStrip_array(int stripNb = 100){
     int det, strip; double edep;
     detTree->SetBranchAddress("det", &det);               // 0,1
     detTree->SetBranchAddress("strip", &strip);           // 1-200
-    detTree->SetBranchAddress("edep", &edep);             // KeV
+    detTree->SetBranchAddress("edep", &edep);             // keV
     static double totEnergyStrip[2] = {0};
     Long64_t detEntries = detTree->GetEntries();
     resetProgress();
@@ -759,8 +758,8 @@ double* eStrip_array(int stripNb = 100){
         cout << "-----------------------------------------------------------------" << endl;
         cout << "File: " << ifilename << endl;
         cout << "-----------------------------------------------------------------" << endl;
-        cout    << "Detector: upst. Energy deposited in strip #" << stripNb << " is: " << totEnergyStrip[0] << "KeV" << endl;
-        cout    << "Detector: down. Energy deposited in strip #" << stripNb << " is: " << totEnergyStrip[1] << "KeV" << endl; 
+        cout    << "Detector: upst. Energy deposited in strip #" << stripNb << " is: " << totEnergyStrip[0] << "keV" << endl;
+        cout    << "Detector: down. Energy deposited in strip #" << stripNb << " is: " << totEnergyStrip[1] << "keV" << endl; 
     }
     return totEnergyStrip;
 }
@@ -773,7 +772,7 @@ double eStrip(int detNb=0, int stripNb = 100){
 std::vector<TH1D> eLongitudinal_array(int nbBins = 100){
     TH1D* edepZHist[2];
     for(int i=0; i<2; i++){
-        edepZHist[i] = new TH1D(TString::Format("edepZHistdet%i",i), "Longitudinal energy profile " + whichDetVerbose(i) + " detector;Z [mm]; energy [KeV]", (int)nbBins, -0.050, 0.050);
+        edepZHist[i] = new TH1D(TString::Format("edepZHistdet%i",i), "Longitudinal energy profile " + whichDetVerbose(i) + " detector;Z [mm]; energy [keV]", (int)nbBins, -0.050, 0.050);
         edepZHist[i]->GetXaxis()->SetRangeUser(-0.060, 0.060);
     }
     
@@ -829,10 +828,10 @@ std::vector<TH1D> edepProject(double meshSize = 0.100){
         TString helper = "Energy deposited in the " + whichDetVerbose(i) + " detector";
         result[2*i] = new TH1D(*temp[i].ProjectionX());
         result[2*i]->SetTitle(helper);
-        result[2*i]->GetYaxis()->SetTitle("Deposited energy / BX [KeV]");
+        result[2*i]->GetYaxis()->SetTitle("Deposited energy / BX [keV]");
         result[2*i+1] = new TH1D(*temp[i].ProjectionY());
         result[2*i+1]->SetTitle(helper);
-        result[2*i+1]->GetYaxis()->SetTitle("Deposited energy / BX [KeV]");
+        result[2*i+1]->GetYaxis()->SetTitle("Deposited energy / BX [keV]");
     }
 
     if(verbosityLevel>0){
@@ -842,7 +841,7 @@ std::vector<TH1D> edepProject(double meshSize = 0.100){
             edepProjectCanvas->cd(i+1);
             result[i]->DrawClone("hist");
             edepProjectCanvas->cd(i+3);
-            result[2*i+1]->DrawClone("hist");
+            result[i+2]->DrawClone("hist");
         }
     }
 
@@ -1045,7 +1044,7 @@ std::vector<TH1D> edepProjectStripTree(double pE0, double pE1){
     }
     return retVar;
 }
-// Energy deposition profile in the strips with comparison with deposition from charged primaries, fo the primaries in the energy range [enLow, enHigh]. It uses the strip tree data. Return a 2-array for det0 and 1
+// Energy deposition profile in the strips with comparison with deposition from charged primaries. It uses the strip tree data. Return a 2-array for det0 and 1
 std::vector<TH1D> edepStripChg(){
     // Select events with the given energy range
     std::vector<int> pSelList;
@@ -1095,6 +1094,7 @@ std::vector<TH1D> edepStripChg(){
 
         edepStripHist[det]->Fill(strip, edep);
 
+        
         for(int i=p0; i<selNb; i++){
             double val=pSelList[i];
             if(event < val){
@@ -1105,6 +1105,12 @@ std::vector<TH1D> edepStripChg(){
                 break;
             }
         }
+        // for(int i=0; i<selNb; i++){
+        //     double val=pSelList[i];
+        //     if(event == val){
+        //         edepChgHist[det]->Fill(strip, edep);
+        //     }
+        // }
     }
 
     // Rescale to the BX
@@ -1157,8 +1163,8 @@ std::vector<TH1D> edepStripChg(){
             edepStripHist[i]->DrawClone("hist");
             edepChgHist[i]->DrawClone("hist same");
             legend->SetHeader("Initial beam particles accounted:","L"); // option "C" allows to center the header
-            legend->AddEntry(edepStripHist[i], TString::Format("#gamma,e^{-},e^{+} - %i entries",(int)edepStripHist[i]->GetEntries()),"l");
-            legend->AddEntry(edepChgHist[i], TString::Format("e^{-},e^{+}    - %i entries",(int)edepChgHist[i]->GetEntries()),"l");
+            legend->AddEntry(edepStripHist[i], TString::Format("#gamma, others - %i entries",(int)edepStripHist[i]->GetEntries()),"l");
+            legend->AddEntry(edepChgHist[i], TString::Format("others    - %i entries",(int)edepChgHist[i]->GetEntries()),"l");
             legend->DrawClone();
             delete legend;
         }
@@ -1182,7 +1188,7 @@ std::vector<TH1D> edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/, double en
         }else if(0.001<=x && x<0.1){
             unit = TString::Format("%.1f MeV", x*1E3);
         }else if(0.000001<=x && x<0.001){
-            unit = TString::Format("%.1f KeV", x*1E6);
+            unit = TString::Format("%.1f keV", x*1E6);
         }else if(x<0.000001){
             unit = TString::Format("%.1f eV", x*1E9);
         }else{
@@ -1263,7 +1269,7 @@ void plot_edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/, double enHigh=10.
         }else if(0.001<=x && x<0.1){
             unit = TString::Format("%.1f MeV", x*1E3);
         }else if(0.000001<=x && x<0.001){
-            unit = TString::Format("%.1f KeV", x*1E6);
+            unit = TString::Format("%.1f keV", x*1E6);
         }else if(x<0.000001){
             unit = TString::Format("%.1f eV", x*1E9);
         }else{
@@ -1343,16 +1349,16 @@ void plot_edepProjectPrimEnPartitioned(double enLow=0 /*GeV*/, double enHigh=10.
 // Energy & dose 2D map using a mesh of size LxLx100 um3. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
 std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/){
     const int nbXpts = 20./meshSize;
-    const int nbYpts = nbXpts;
+    const int nbYpts = 20./meshSize;
     double totEnergy[2] = {0};
 
     TH2D* edepXYHist[2];
     for(int i=0; i<2; i++){
-        edepXYHist[i] = new TH2D(TString::Format("edepXYHist%i",i), "Energy dep. XY map in the " + whichDetVerbose(i) + " detector [KeV];X [mm]; Y [mm]", nbXpts, -10, 10, nbYpts, -10, 10);
+        edepXYHist[i] = new TH2D(TString::Format("edepXYHist%i",i), "Energy dep. XY map in the " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", nbXpts, -10.0, 10.0, nbYpts, -10.0, 10.0);
         // edepXYHist[i].GetXaxis()->SetRangeUser(-1.5, 1.5);
         // edepXYHist[i].GetYaxis()->SetRangeUser(-1.5, 1.5);
         // Style
-        edepXYHist[i]->SetStats(0);
+        // edepXYHist[i]->SetStats(0);
         edepXYHist[i]->SetContour(500);
     }
 
@@ -1361,7 +1367,7 @@ std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/){
     debugTree->SetBranchAddress("det", &det);               // 0,1
     debugTree->SetBranchAddress("x", &x);                   // mm
     debugTree->SetBranchAddress("y", &y);                   // mm
-    debugTree->SetBranchAddress("edep", &edep);             // KeV
+    debugTree->SetBranchAddress("edep", &edep);             // keV
     debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
 
     Long64_t treeEntries = debugTree->GetEntries();
@@ -1370,7 +1376,7 @@ std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/){
         debugTree->GetEntry(i);
         float status = (float)(i+1)/(float)treeEntries;
         printProgress(status);
-        if(det >= 2) continue;
+        if(det == 2) continue;
         edepXYHist[det]->Fill(x, y, edep);
         totEnergy[det] += edep;
     }
@@ -1425,16 +1431,16 @@ std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/){
                 if(verbosityLevel>1){
                     cout    << "Total energy deposit is:\t"             << totEnergy[i]/1E6 << " GeV" << endl;
                     cout    << "Total absorbed dose is:\t\t"            << totEnergy[i]/totVol * conversionFactor << " Gy (" << totVol << " um3)" << endl;
-                    cout    << "Peak dose is:\t\t\t"                    << peakDose[i] << " Gy (" << peakEnergy[i] << " KeV in " << vol << " um3)" <<  endl;
+                    cout    << "Peak dose is:\t\t\t"                    << peakDose[i] << " Gy (" << peakEnergy[i] << " keV in " << vol << " um3)" <<  endl;
                     cout    << "----------------BX--------------------" << endl;
                 }
                 cout    << "Total energy deposit/BX is:\t"          << totEnergy[i]/1E6 * 1E2 << " GeV" << endl;
                 cout    << "Total absorbed dose/BX is:\t"           << totEnergy[i]/totVol * conversionFactor * 1E2 << " Gy (" << totVol << " um3)" << endl;
-                cout    << "Peak dose/BX is:\t\t"                   << peakDose[i] * 1E2 << " Gy (" << peakEnergy[i] * 1E2 << " KeV in " << vol << " um3)" <<  endl;
+                cout    << "Peak dose/BX is:\t\t"                   << peakDose[i] * 1E2 << " Gy (" << peakEnergy[i] * 1E2 << " keV in " << vol << " um3)" <<  endl;
             }else if(ifilename.Contains("_9_")){    
                 cout    << "Total energy deposit/BX is:\t"          << totEnergy[i]/1E6 << " GeV" << endl;
                 cout    << "Total absorbed dose/BX is:\t"           << totEnergy[i]/totVol * conversionFactor << " Gy (" << totVol << " um3)" << endl;
-                cout    << "Peak dose/BX is:\t\t"                   << peakDose[i] << " Gy (" << peakEnergy[i] << " KeV in " << vol << " um3)" <<  endl;
+                cout    << "Peak dose/BX is:\t\t"                   << peakDose[i] << " Gy (" << peakEnergy[i] << " keV in " << vol << " um3)" <<  endl;
             }
             if(i!=1)    cout    << "--------------------------------------" << endl;
         }
@@ -1451,8 +1457,332 @@ std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/){
     }
     return retVar;
 }
+// Energy & dose 2D map using a mesh of size LxLx100 um3. Contributions from only photons to the dose. Return a 4-array of TH2D with [0]emapdet0, [1]emapdet1, [2]dmapdet0, [3]dmapdet1
+std::vector<TH2D> doseXY(bool neutral, double meshSize = 0.100 /*mm*/){
+    // Select events with the given energy range
+    std::vector<int> pSelList;
+    int eventSel, pdgSel;
+    primaryTree->SetBranchAddress("event", &eventSel);
+    primaryTree->SetBranchAddress("pdg", &pdgSel);
+    Long64_t primaryEntries = primaryTree->GetEntries();
+    if(verbosityLevel>0) cout << "primaryTree has " << primaryEntries << " entries. Looping over entries...\n";
+    resetProgress();
+    for(Long64_t i=0; i< primaryEntries; i++ ){
+        float status = (float)(i+1) / primaryEntries;
+        printProgress(status);
+        
+        primaryTree->GetEntry(i);
+        if(pdgSel != 2212) pSelList.push_back(i);
+    }
+
+    Long64_t selNb = pSelList.size();
+    if(verbosityLevel>0) cout << "Photons in the primaries: " << selNb <<  endl;
+    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
+    std::sort(pSelList.begin(), pSelList.end());
+    
 
 
+
+    const int nbXpts = 20./meshSize;
+    const int nbYpts = nbXpts;
+    double totEnergy[2] = {0};
+
+    TH2D* edepXYHist[2];
+    for(int i=0; i<2; i++){
+        edepXYHist[i] = new TH2D(TString::Format("edepXYHist%i",i), "Energy dep. XY map in the " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", nbXpts, -10, 10, nbYpts, -10, 10);
+        // edepXYHist[i].GetXaxis()->SetRangeUser(-1.5, 1.5);
+        // edepXYHist[i].GetYaxis()->SetRangeUser(-1.5, 1.5);
+        // Style
+        // edepXYHist[i]->SetStats(0);
+        edepXYHist[i]->SetContour(500);
+    }
+
+    if(verbosityLevel>0) cout << "Filling the histogram..." << endl;
+    int event, det, pdg; double x, y; double edep;
+    debugTree->SetBranchAddress("event", &event);
+    debugTree->SetBranchAddress("det", &det);               // 0,1
+    debugTree->SetBranchAddress("x", &x);                   // mm
+    debugTree->SetBranchAddress("y", &y);                   // mm
+    debugTree->SetBranchAddress("edep", &edep);             // keV
+    debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
+    Long64_t treeEntries = debugTree->GetEntries();
+
+    int p0=0;
+    resetProgress();
+    for(Long64_t i=0; i< treeEntries; i++ ){
+        debugTree->GetEntry(i);
+        float status = (float)(i+1)/(float)treeEntries;
+        printProgress(status);
+        if(det >= 2) continue;
+        totEnergy[det] += edep;
+
+        for(int j=p0; j<selNb; j++){
+            int val=pSelList[j];
+            if(event < val){
+                break;
+            }else if(event == val){
+                edepXYHist[det]->Fill(x, y, edep);
+                p0=j;
+                break;
+            }
+        }
+    }
+
+    double conversionFactor = 0.1 * 1.60 / 3.970;
+    double vol = (meshSize*1E3)*(meshSize*1E3)*(100);
+    TH2D* doseXYHist[2];
+    for(int i=0; i<2; i++){
+        doseXYHist[i] = new TH2D(*edepXYHist[i]);
+        doseXYHist[i]->SetName(TString::Format("doseXYHist%i",i));
+        doseXYHist[i]->SetTitle("Dose XY map in the " + whichDetVerbose(i) + " detector [Gy] ;X [mm]; Y [mm]");
+        doseXYHist[i]->Scale(conversionFactor/vol);
+        // doseXYHist->GetXaxis()->SetRangeUser(-1.5, 1.5);
+        // doseXYHist->GetYaxis()->SetRangeUser(-1.5, 1.5);
+    }
+
+    // Styling
+    // gStyle->SetPalette(kRainBow);
+    if(verbosityLevel>0){
+        TCanvas* doseXYCanvas = new TCanvas("doseXYCanvas", "Energy & dose 2D map using a mesh of size LxLx100 um3", 1200, 800);
+        doseXYCanvas->Divide(2,2);
+        doseXYCanvas->SetFrameBorderSize(2);
+        for(int i=0; i<2; i++){
+            doseXYCanvas->cd(1+i);
+            edepXYHist[i]->DrawClone("colz");
+            doseXYCanvas->cd(3+i);
+            doseXYHist[i]->DrawClone("colz");
+        }
+    }
+
+    // Verbose messages
+    if(verbosityLevel>1){
+        cout << "Mesh size [um]: "  << meshSize*1000.           << endl;
+        cout << "Mesh blocks: "     << nbXpts<<'x'<<nbYpts      << endl;
+        cout    << "\n\n";
+    }
+
+    // Statistics & output
+    double radius = gausBSigma[0]*sqrt(2.*log(20.));
+    double totVol = TMath::Pi() * radius*radius * detThickness;
+    double peakEnergy[2], peakDose[2], peakPoint[2][2];
+    for(int i=0; i<2; i++){
+        peakEnergy[i] = edepXYHist[i]->GetMaximum();
+        peakDose[i] = doseXYHist[i]->GetMaximum();
+        peakPoint[i][0] = doseXYHist[i]->GetXaxis()->GetBinCenter(doseXYHist[i]->GetMaximumBin());
+        peakPoint[i][1] = doseXYHist[i]->GetYaxis()->GetBinCenter(doseXYHist[i]->GetMaximumBin());
+
+        if(verbosityLevel>0){
+            // Report
+            cout    << "Detector: "                                 << whichDetVerbose(i) << endl;
+            if(ifilename.Contains("_7_")){
+                if(verbosityLevel>1){
+                    cout    << "Total energy deposit is:\t"             << totEnergy[i]/1E6 << " GeV" << endl;
+                    cout    << "Total absorbed dose is:\t\t"            << totEnergy[i]/totVol * conversionFactor << " Gy (" << totVol << " um3)" << endl;
+                    cout    << "Peak dose is:\t\t\t"                    << peakDose[i] << " Gy (" << peakEnergy[i] << " keV in " << vol << " um3)" <<  endl;
+                    cout    << "----------------BX--------------------" << endl;
+                }
+                cout    << "Total energy deposit/BX is:\t"          << totEnergy[i]/1E6 * 1E2 << " GeV" << endl;
+                cout    << "Total absorbed dose/BX is:\t"           << totEnergy[i]/totVol * conversionFactor * 1E2 << " Gy (" << totVol << " um3)" << endl;
+                cout    << "Peak dose/BX is:\t\t"                   << peakDose[i] * 1E2 << " Gy (" << peakEnergy[i] * 1E2 << " keV in " << vol << " um3)" <<  endl;
+            }else if(ifilename.Contains("_9_")){    
+                cout    << "Total energy deposit/BX is:\t"          << totEnergy[i]/1E6 << " GeV" << endl;
+                cout    << "Total absorbed dose/BX is:\t"           << totEnergy[i]/totVol * conversionFactor << " Gy (" << totVol << " um3)" << endl;
+                cout    << "Peak dose/BX is:\t\t"                   << peakDose[i] << " Gy (" << peakEnergy[i] << " keV in " << vol << " um3)" <<  endl;
+            }
+            if(i!=1)    cout    << "--------------------------------------" << endl;
+        }
+    }
+
+
+    std::vector<TH2D> retVar;
+    retVar.push_back(*edepXYHist[0]);
+    retVar.push_back(*edepXYHist[1]);
+    retVar.push_back(*doseXYHist[0]);
+    retVar.push_back(*doseXYHist[1]);
+    for(int i=0; i<2; i++){
+        delete edepXYHist[i], doseXYHist[i];
+    }
+    return retVar;
+}
+//NEW
+// Energy deposition in the transverse XY plane. Either X or Y profile by selecting the returned value [0] det0X [1] det0Y [2] det1X [3] det1Y
+std::vector<TH1D> edepProject(bool filter, double meshSize = 0.100){
+    // Select events with the given filter (for now hard-coded below). Now is selects non-gamma particles
+    // Upstream detector.
+    // Selection happens using the event ID since primary particles are spawned at the surface of the upstream sapphire.
+    std::vector<int> pSelListU;
+    int eventSelU, pdgSelU;
+    primaryTree->SetBranchAddress("event", &eventSelU);
+    primaryTree->SetBranchAddress("pdg", &pdgSelU);
+    Long64_t primaryEntries = primaryTree->GetEntries();
+    if(verbosityLevel>0) cout << "primaryTree has " << primaryEntries << " entries. Looping over entries...\n";
+    resetProgress();
+    for(Long64_t i=0; i< primaryEntries; i++ ){
+        float status = (float)(i+1) / primaryEntries;
+        printProgress(status);
+        
+        primaryTree->GetEntry(i);
+        if(pdgSelU != 22){
+            pSelListU.push_back(eventSelU);
+        }
+    }
+    Long64_t selUNb = pSelListU.size();
+    if(verbosityLevel>0) cout << "Non-photons entering the upstream detector: " << selUNb <<  endl;
+    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
+    std::sort(pSelListU.begin(), pSelListU.end());
+
+    
+    
+    // Downstream detector.
+    // Selection happens using the track ID and the charge scoring plane tree
+    class pSelListDCl {
+        public:
+        pSelListDCl(int event, int track){ eventID = event; trackID= track;};
+        ~pSelListDCl(){};
+
+        int getEvent(){ return eventID;}
+        int getTrack(){ return trackID;}
+
+        private:
+        int eventID;
+        int trackID;
+    };
+    std::vector<pSelListDCl> pSelListD; // Track IDs of the particles entering the downstream detector, and satifying the filter condition
+    int eventSelD, trackSelD, pdgSelD;
+    planeTree->SetBranchAddress("event", &eventSelD);
+    planeTree->SetBranchAddress("track", &trackSelD);
+    planeTree->SetBranchAddress("pdg", &pdgSelD);
+    Long64_t planeEntries = planeTree->GetEntries();
+    if(verbosityLevel>0) cout << "planeTree has " << planeEntries << " entries. Looping over entries...\n";
+    resetProgress();
+    for(Long64_t i=0; i< planeEntries; i++ ){
+        float status = (float)(i+1) / planeEntries;
+        printProgress(status);
+        
+        planeTree->GetEntry(i);
+        if(pdgSelD != 22){
+            pSelListDCl tmp(eventSelD, trackSelD);
+            pSelListD.push_back(tmp);
+        }
+    }
+    Long64_t selDNb = pSelListD.size();
+    if(verbosityLevel>0) cout << "Non-photons entering the downstream detector: " << selDNb <<  endl;
+    // Sort the list of chg. part IDs in order to speed up the loop by using p0=i
+    //std::sort(pSelListD.begin(), pSelListD.end());    // They are sorted by contruction
+
+    // Dose code with some minor modifications
+    const int binsNb = 20./meshSize;
+    double totEnergy[2] = {0};
+
+    TH2D* edepXYHist[2];
+    TH2D* edepXYSelHist[2];
+    for(int i=0; i<2; i++){
+        edepXYHist[i] = new TH2D(TString::Format("edepXYHist%i",i), "Energy dep. XY map in the " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", binsNb, -10, 10, binsNb, -10, 10);
+        edepXYSelHist[i] = new TH2D(TString::Format("edepXYSelHist%i",i), "non-photons primaries " + whichDetVerbose(i) + " detector [keV];X [mm]; Y [mm]", binsNb, -10, 10, binsNb, -10, 10);
+        // Style
+        // edepXYHist[i]->SetStats(0);
+        edepXYHist[i]->SetContour(500);
+        edepXYSelHist[i]->SetContour(500);
+        edepXYSelHist[i]->SetLineColor(kRed);
+    }
+
+    if(verbosityLevel>0) cout << "Filling the histogram..." << endl;
+    int event, track, det, pdg; double x, y; double edep;
+    debugTree->SetBranchAddress("event", &event);           // Event ID
+    debugTree->SetBranchAddress("track", &track);           // Track ID
+    debugTree->SetBranchAddress("det", &det);               // 0,1
+    debugTree->SetBranchAddress("x", &x);                   // mm
+    debugTree->SetBranchAddress("y", &y);                   // mm
+    debugTree->SetBranchAddress("edep", &edep);             // keV
+    debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
+    Long64_t debugEntries = debugTree->GetEntries();
+
+    int pU0=0; int pD0=0;
+    resetProgress();
+    for(Long64_t i=0; i< debugEntries; i++ ){
+        debugTree->GetEntry(i);
+        float status = (float)(i+1)/(float)debugEntries;
+        printProgress(status);
+        if(det >= 2) continue;  
+        totEnergy[det] += edep;
+        // Filling energy depositions from all the primaries.
+        edepXYHist[det]->Fill(x, y, edep);
+
+        // Filling energy depositions from selected 'filter' primaries
+        if(det==0){
+            for(int j=pU0; j<selUNb; j++){
+                int val=pSelListU[j];
+                if(val > event){
+                    break;
+                }else if(val == event){
+                    // cout << i << ": " << event << ", " << track << ", " << whichDetShort(det) << ", " << pdg << ", (" << x << "," << y << "), " <<  edep << "\tchg\n";
+                    edepXYSelHist[det]->Fill(x, y, edep);
+                    pU0=j;
+                    break;
+                }
+            }
+        }else{
+            for(int j_events=pD0; j_events<selDNb; j_events++){
+                auto pSelClass_ith = pSelListD[j_events];
+                int evtOf_ith_class = pSelClass_ith.getEvent();
+                int trkOf_ith_class = pSelClass_ith.getTrack();
+                if(event < evtOf_ith_class){
+                    break;
+                }else if(event == evtOf_ith_class){
+                    if(track == trkOf_ith_class){
+                        // cout << i << ": " << event << ", " << track << ", " << whichDetShort(det) << ", " << pdg << ", (" << x << "," << y << "), " << edep << "\tchg\n";
+                        edepXYSelHist[det]->Fill(x, y, edep);
+                    }
+                    pD0=j_events;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Verbose messages
+    if(verbosityLevel>1){
+        cout << "Mesh size [um]: "  << meshSize*1000.           << endl;
+        cout << "Mesh blocks: "     << binsNb<<'x'<<binsNb      << endl;
+        cout    << "\n\n";
+    }
+    
+    std::vector<TH1D> edepProj;
+    for(int i=0; i<2; i++){
+        edepProj.push_back(TH1D(*edepXYHist[i]->ProjectionX()));
+        edepProj.push_back(TH1D(*edepXYHist[i]->ProjectionY()));
+    }
+    for(int i=0; i<2; i++){
+        edepProj.push_back(TH1D(*edepXYSelHist[i]->ProjectionX()));
+        edepProj.push_back(TH1D(*edepXYSelHist[i]->ProjectionY()));
+    }
+    for(int i=0; i<8; i++){
+        edepProj[i].GetYaxis()->SetTitle("Deposited energy / BX [keV]");
+    }
+
+    if(verbosityLevel>0){
+        TCanvas* edepProjectCanvas = new TCanvas("edepProjectCanvas", "Energy deposition in the transverse XY plane", 1200, 600);
+        edepProjectCanvas->Divide(2,2);
+        for(int j=0; j<2; j++){
+            for(int i=2*j; i<2*j+2; i++){
+                edepProjectCanvas->cd(i+1);
+                edepProjectCanvas->SetGridx(); edepProjectCanvas->SetGridy();
+                TLegend* legend = new TLegend(1-0.4,0.7,1-0.1,0.9);
+                legend->SetHeader("Initial beam particles accounted:","L"); // option "C" allows to center the header
+                legend->AddEntry(&edepProj[i],TString::Format("#gamma, other - %i entries",(int)edepProj[i].GetEntries()),"l");
+                legend->AddEntry(&edepProj[i+4],TString::Format("other    - %i entries",(int)edepProj[i+4].GetEntries()),"l");
+                edepProj[i].DrawClone("hist");
+                edepProj[i+4].DrawClone("hist same");
+                if(i+1 == 1){
+                    primaryTree->Draw("x0","1E2 * (pdg!=22)","hist same");
+                }
+                legend->Draw();
+            }
+        }
+    }
+    
+    return edepProj;
+}
 
 
 /*
@@ -1460,7 +1790,7 @@ std::vector<TH2D> doseXY(double meshSize = 0.100 /*mm*/){
 * Detector performance for TDR - START
 * ******************************************************************************************************************************************
 */
-// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in KeV. Return a 2-array with fit for upstream and downstream det.s
+// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV. Return a 2-array with fit for upstream and downstream det.s
 std::vector<TH1I> fitHits(double threshold, int* fitRange){
     static double rchisq[2];
     int verbosityLevel_bak = verbosityLevel;
@@ -1489,9 +1819,9 @@ std::vector<TH1I> fitHits(double threshold, int* fitRange){
         printProgress(status);
 
         stripTree->GetEntry(i);
-        if(edep < threshold) continue;                                         // Hit condition. If edep is less than threshold KeV then quit the loop istance
+        if(edep < threshold) continue;                                         // Hit condition. If edep is less than threshold keV then quit the loop istance
         hitHist[det]->Fill(strip, (int)(edep/threshold));                      // Add the number of hits in the corresponding x/y det hist.
-                                                                               // For example: edep=5.4 KeV -> 5 hits
+                                                                               // For example: edep=5.4 keV -> 5 hits
     }
     // I've noticed that error are not properly calculated, despite the option is
     //      root [13] result->GetBinErrorOption()
@@ -1586,7 +1916,7 @@ std::vector<TH1I> fitHits(){
     int defRange[2] = {90, 110};
     return fitHits(1.0, defRange);
 }
-// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in KeV, fitRange is a 2-array with stripL, stripH where the fit is ranged.
+// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Threshold is in keV, fitRange is a 2-array with stripL, stripH where the fit is ranged.
 double* fitHitsChi2(double threshold, int* fitRange){
     static double rchisq[2];
     int verbosityLevel_bak = verbosityLevel;
@@ -1614,9 +1944,9 @@ double* fitHitsChi2(double threshold, int* fitRange){
         printProgress(status);
 
         stripTree->GetEntry(i);
-        if(edep < threshold) continue;                                         // Hit condition. If edep is less than threshold KeV then quit the loop istance
+        if(edep < threshold) continue;                                         // Hit condition. If edep is less than threshold keV then quit the loop istance
         hitHist[det].Fill(strip, (int)(edep/threshold));                      // Add the number of hits in the corresponding x/y det hist.
-                                                                               // For example: edep=5.4 KeV -> 5 hits
+                                                                               // For example: edep=5.4 keV -> 5 hits
     }
     // I've noticed that error are not properly calculated, despite the option is
     //      root [13] result->GetBinErrorOption()
@@ -1726,7 +2056,7 @@ double* fitHitsChi2(double threshold, int* fitRange){
     // Return chi square
     return rchisq;
 }
-// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Default threshold of 1KeV and range 90,110.
+// Energy depositions/det over X (Y) & profile reconstruction via the 'threshold method'. Default threshold of 1keV and range 90,110.
 double* fitHitsChi2(double threshold = 1.){
     int defRange[2] = {90, 110};
     return fitHitsChi2(threshold, defRange);
@@ -1739,7 +2069,7 @@ std::vector<TGraph2D> fitVSThrRng(){
     for(int i=0; i<2; i++){
         chiSGraph[i] = new TGraph2D();
         TString tmp = (i ? "Upstream": "Downstream");
-        chiSGraph[i]->SetTitle(tmp + " det. #chi^{2}(strip_{window}, e_{thr}) threshold; fit window [#Delta strip]; Threshold [KeV]; #chi^{2}");
+        chiSGraph[i]->SetTitle(tmp + " det. #chi^{2}(strip_{window}, e_{thr}) threshold; fit window [#Delta strip]; Threshold [keV]; #chi^{2}");
     }
     for(double tS=0; tS<=10; tS++){
         double threshold = 1.0 + (tS/10)*10.0;
@@ -1759,7 +2089,6 @@ std::vector<TGraph2D> fitVSThrRng(){
     }
     return retVar;
 }
-
 // Plot fitVSThrRng()
 void plot_fitVSThrRng(){
     std::vector<TGraph2D> chiSGraph = fitVSThrRng();
@@ -1769,42 +2098,11 @@ void plot_fitVSThrRng(){
     new TCanvas();
     chiSGraph[1].DrawClone("surf1");
 }
-
-
-
-
-
-
-
 /*
 * ******************************************************************************************************************************************
-* NEW METHODS!!!
+* Create report with all the major analysis - 1.5/3 minutes
 * ******************************************************************************************************************************************
 */
-
-// Superimpose the beam profile of the primaries with the reconstructed one
-void overlayReconstructedBeamProfile(){
-    TH2D primaryEPro = primaryEnergyProfile()[0];
-    TH1D* primProjX = primaryEPro.ProjectionX();
-
-    double scale;
-    scale = primProjX->GetXaxis()->GetBinWidth(1)/(primProjX->Integral());
-    primProjX->Scale(scale);
-    primProjX->Draw("hist");
-
-    std::vector<TH1D> detEPro = edepProject();
-    TH1D det0XProj = detEPro[0];
-    scale = det0XProj.GetXaxis()->GetBinWidth(1)/(det0XProj.Integral());
-    det0XProj.Scale(scale);
-    det0XProj.SetLineColor(kRed);
-    det0XProj.DrawClone("hist same");
-}
-
-
-
-
-
-
 // Save plots in the folder plots
 int createReport(TString path = "plots/", TString format = ".pdf", TString ofilename = "out.root"){
     int verbosityLevel_bak = verbosityLevel;
@@ -1813,10 +2111,6 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
     TFile* ofile = new TFile(ofilename, "recreate");
     TCanvas* painter = new TCanvas("painter", "Title");
     painter->SetGridx(); painter->SetGridy();
-    TH1D obj, objSame;
-    TH2D obj2;
-    TH1D* objs = (TH1D*)malloc(15*sizeof(TH1D));
-    TH2D* objs2 = (TH2D*)malloc(15*sizeof(TH2D));
     TString fname;
 
     std::vector<TH1D> temp;
@@ -1848,7 +2142,6 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
     painter->Print(path+fname+format);
     temp2.clear();
     
-    //TODO: ADD LEGEND
     cout << "primarySpectrum OK\n";
     temp = primarySpectrum(11, 16.0);
     for(int i=0; i<2; i++){
@@ -1869,6 +2162,26 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
     delete legend;
     temp.clear();
     
+    cout << "primarySpectrumLogLog OK\n";
+    temp = primarySpectrumLogLog(11, 1E-9, 16.0, 100);
+    for(int i=0; i<2; i++){
+        temp[i].Write();
+    }
+    TLegend* legend4LogLog = new TLegend(0.1,0.7,0.4,0.9);
+    legend4LogLog->SetHeader("Initial beam particles accounted:","L"); // option "C" allows to center the header
+    legend4LogLog->AddEntry(&temp[1],TString::Format("#gamma,e^{-},e^{+} - %i entries",(int)temp[1].GetEntries()),"l");
+    legend4LogLog->AddEntry(&temp[0],TString::Format("e^{-},e^{+}    - %i entries",(int)temp[0].GetEntries()),"l");
+    temp[0].SetStats(0); temp[1].SetStats(0);
+    painter->SetLogx(); painter->SetLogy();
+    temp[1].Draw(); temp[0].Draw("same");
+    legend4LogLog->Draw();
+    fname = temp[0].GetName();
+    painter->Print(path+fname+format);
+    painter->SetLogx(0); painter->SetLogy(0);
+    delete legend4LogLog;
+    temp.clear();
+
+
     // Replaced by edepSpectrumChg
     // cout << "edepSpectrum OK\n";
     // temp = edepSpectrum(1000, 0, 1000);
@@ -1964,17 +2277,6 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
     }
     temp2.clear();
 
-    // Replaced by edepProjectPrimEnPartitioned
-    // cout << "edepProjectStripTree OK\n";
-    // temp = edepProjectStripTree();
-    // for(int i=0; i < 2; i++){
-    //     temp[i].Write();
-    //     temp[i].Draw("hist");
-    //     fname = temp[i].GetName();
-    //     painter->Print(path+fname+format);
-    // }
-    // temp.clear();
-
     cout << "fitHits OK\n";
     std::vector<TH1I> fitHitsPlots = fitHits();
     for(int i=0; i < 2; i++){
@@ -1994,7 +2296,7 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
         }else if(0.001<=x && x<0.1){
             unit = TString::Format("%.1f MeV", x*1E3);
         }else if(0.000001<=x && x<0.001){
-            unit = TString::Format("%.1f KeV", x*1E6);
+            unit = TString::Format("%.1f keV", x*1E6);
         }else if(x<0.000001){
             unit = TString::Format("%.1f eV", x*1E9);
         }else{
@@ -2048,7 +2350,29 @@ int createReport(TString path = "plots/", TString format = ".pdf", TString ofile
 }
 
 
+/*
+* ******************************************************************************************************************************************
+* NEW METHODS!!!
+* ******************************************************************************************************************************************
+*/
 
+// Superimpose the beam profile of the primaries with the reconstructed one
+void overlayReconstructedBeamProfile(){
+    TH2D primaryEPro = primaryEnergyProfile()[0];
+    TH1D* primProjX = primaryEPro.ProjectionX();
+
+    double scale;
+    scale = primProjX->GetXaxis()->GetBinWidth(1)/(primProjX->Integral());
+    primProjX->Scale(scale);
+    primProjX->Draw("hist");
+
+    std::vector<TH1D> detEPro = edepProject();
+    TH1D det0XProj = detEPro[0];
+    scale = det0XProj.GetXaxis()->GetBinWidth(1)/(det0XProj.Integral());
+    det0XProj.Scale(scale);
+    det0XProj.SetLineColor(kRed);
+    det0XProj.DrawClone("hist same");
+}
 /*
 * ******************************************************************************************************************************************
 * Count events around an axis, assuming radial symmetry - START
@@ -2089,12 +2413,99 @@ void toolsCumulativeProbabilityXYGaussian(double events = 1E5, float sig = 0.375
     sigmaFit->Draw("same");
 }
 void macro(){}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void TEMPCOMPARE(){
+    new TCanvas();
+    TH2D* edepTest2  = new TH2D("edepTest2", "from degubTree", 200, -10, 10, 200, -10, 10);
+    debugTree->Project("edepTest2", "y:x", "edep*(det==0)");
+    edepTest2->Draw("colz");
+
+    new TCanvas();
+    TH2D* edepXYHistUpstream = new TH2D("edepXYHistUpstream", "Energy dep. XY map in the upstream detector [keV];X [mm]; Y [mm]", 200, -10.0, 10.0, 200, -10.0, 10.0);
+    if(verbosityLevel>0) cout << "Filling the histogram..." << endl;
+    int det, pdg; double x, y; double edepV;
+    debugTree->SetBranchAddress("det", &det);               // 0,1
+    debugTree->SetBranchAddress("x", &x);                   // mm
+    debugTree->SetBranchAddress("y", &y);                   // mm
+    debugTree->SetBranchAddress("edep", &edepV);             // keV
+    debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
+    Long64_t treeEntries = debugTree->GetEntries();
+    resetProgress();
+    for(Long64_t i=0; i< treeEntries; i++ ){
+        debugTree->GetEntry(i);
+        float status = (float)(i+1)/(float)treeEntries;
+        printProgress(status);
+        if(det > 0) continue;
+        edepXYHistUpstream->Fill(x, y, edepV);
+    }
+    cout << "rms: " << edepXYHistUpstream->GetRMS() << endl;
+    edepXYHistUpstream->Draw("colz");
+    
+
+
+    // new TCanvas();
+    // TH1D* test2  = new TH1D("test2", "from degubTree with y==0", 200, -10, 10);
+    // debugTree->Project("test2", "x", "y==0 && det==0");
+    // test2->Draw("hist");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 * ******************************************************************************************************************************************
 * Utilities
 * ******************************************************************************************************************************************
 */
-// 
 // void exportBruschi(){
 //     TCanvas* resultCanvas = new TCanvas("resultCanvas", "Plots", 1000, 600);
 //     resultCanvas->Divide(2,2);
@@ -2140,12 +2551,39 @@ void macro(){}
 //     exportDAT(projYDet1, "det1_edepY.txt");
 //     exportCSV(projYDet1, "det1_edepY.csv");
 // }
-
 /*
 * ******************************************************************************************************************************************
-* Old methods - obsolete/unuseful
+* Old methods - obsolete/unuseful (kept here because they have useful things accesible by the search tool)
 * ******************************************************************************************************************************************
 */
+// Energy spectrum of depositions for the simulation in air and vacuum at comparison. It uses kyleBeam_9_100 
+// void eSpectrumAirVacuum(TString sel = "5"){
+//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0.root");
+//     TH1D air[2], vacuum[2];
+//     for(int i=0; i<2; i++){
+//         air[i] = edepSpectrum(i)[0];
+//         air[i].SetStats(0);
+//     }
+
+//     loadAnotherFile("kyle/kyleBeam_6_"+sel+"0_0_vacuum.root");
+//     for(int i=0; i<2; i++){
+//         vacuum[i] = edepSpectrum(i)[0];
+//         vacuum[i].SetLineColor(kRed);
+//         vacuum[i].SetStats(0);
+//     }
+
+//     TLegend* legend[2];
+//     for(int i=0; i<2; i++){
+//         TCanvas* compCanvas = new TCanvas("eSpectrumAirVacuum"+whichDetShort(i), "Comparison");
+//         vacuum[i].DrawClone();
+//         air[i].DrawClone("same");
+
+//         legend[i] = new TLegend(1.0-0.4, 0.7, 1.0-0.1, 0.9);
+//         legend[i]->AddEntry(&air[i], "air", "l");
+//         legend[i]->AddEntry(&vacuum[i], "vacuum", "l");
+//         legend[i]->DrawClone();
+//     }
+// }
 // Impact of charged particles to the spectrum of deposited energy. Return a 2-array with the spectrum of energy deposited in upstream/downstream detector in the range [a,b] with #bins. Sel is a selector for the values \xi={"5.0", "7.0", "10.0"} 
 // int eSpectrumChgCanvas(int binsIn, double a, double b, TString path = "plots/", TString format = ".pdf"){
 //     static const int bins = binsIn;
@@ -2212,10 +2650,10 @@ void macro(){}
 //     // cout << "Breakpoint B" << endl;
 //     for(int i=0; i<2; i++){
 //         cout << "Breakpoint C. Loop " << i << endl;
-//         eSpectrChgHist[i].GetXaxis()->SetTitle("Energy [KeV]");
+//         eSpectrChgHist[i].GetXaxis()->SetTitle("Energy [keV]");
 //         eSpectrChgHist[i].GetYaxis()->SetTitle("counts");
 
-//         eSpectrTotHist[i].GetXaxis()->SetTitle("Energy [KeV]");
+//         eSpectrTotHist[i].GetXaxis()->SetTitle("Energy [keV]");
 //         eSpectrTotHist[i].GetYaxis()->SetTitle("counts");
 
 //         eSpectrTotHist[i].SetStats(0);
@@ -2304,12 +2742,12 @@ void macro(){}
 // int estimateDetectorPerformance(double threshold = 1.){
 //     // Prepare the histogram
 //     // 1 bin per strip from strip 1 to 200
-//     energyHist[0] = new TH1D("energyX", "Edep upstream detector;strip number; energy [KeV];", 200, 1, 200);
+//     energyHist[0] = new TH1D("energyX", "Edep upstream detector;strip number; energy [keV];", 200, 1, 200);
 //     energyHist[0]->GetXaxis()->SetRangeUser(60,140);
 //     hitHist[0] = new TH1I("hitX", "Hits in the upstream detector;Strip number [1-200];counts", 200, 1, 200);
 //     hitHist[0]->GetXaxis()->SetRangeUser(60,140);
 
-//     energyHist[1] = new TH1D("energyY", "Edep downstream detector;strip number; energy [KeV];", 200, 1, 200);
+//     energyHist[1] = new TH1D("energyY", "Edep downstream detector;strip number; energy [keV];", 200, 1, 200);
 //     energyHist[1]->GetXaxis()->SetRangeUser(60,140);
 //     hitHist[1] = new TH1I("hitY", "Hits in the downstream detector;Strip number [1-200];counts", 200, 1, 200);
 //     hitHist[1]->GetXaxis()->SetRangeUser(60,140);
@@ -2337,11 +2775,11 @@ void macro(){}
 //         totEnergy[det] += edep;                                                // Total energy, useful for normalization (optional)
 //         energyHist[det]->Fill(strip, edep);                                    // Fill the total energy deposition histogram
         
-//         if(edep < threshold) continue;                                         // Hit condition. If edep is less than threshold KeV then quit the loop istance
+//         if(edep < threshold) continue;                                         // Hit condition. If edep is less than threshold keV then quit the loop istance
         
         
 //         hitHist[det]->Fill(strip, (int)(edep/threshold));                      // Add the number of hits in the corresponding x/y det hist.
-//                                                                                // For example: edep=5.4 KeV -> 5 hits
+//                                                                                // For example: edep=5.4 keV -> 5 hits
 //     }
 
 //     // I've noticed that error are not properly calculated, despite the option is
@@ -2430,18 +2868,18 @@ void macro(){}
 //             if(ifilename.Contains("_7_")){
 //                 cout    << "Total energy deposit is:\t"             << totEnergy[i]/1E6 << " GeV" << endl;
 //                 cout    << "Total charge is:\t\t\t"                 << totEnergy[i]*1E3 / 27 * 1.6E-19 * 1E12 << " pC (#e/h x e, with #pairs given by: " << totEnergy[i]*1E3 / 27 << " )" << endl;
-//                 cout    << "Highest energy dep is:\t\t"             << peakEdepStrip << " KeV in strip #" << peakStrip << endl;
-//                 cout    << "Peak dose is:\t\t\t"                    << peakDoseStrip << " Gy in strip " << peakStrip << " (energy: " << peakEdepStrip << " KeV, vol: " << vol << " um3)" <<  endl;
+//                 cout    << "Highest energy dep is:\t\t"             << peakEdepStrip << " keV in strip #" << peakStrip << endl;
+//                 cout    << "Peak dose is:\t\t\t"                    << peakDoseStrip << " Gy in strip " << peakStrip << " (energy: " << peakEdepStrip << " keV, vol: " << vol << " um3)" <<  endl;
 //                 cout    << "----------------BX--------------------" << endl;
 //                 cout    << "Total energy deposit/BX is:\t"          << totEnergy[i]/1E6 * 1E2 << " GeV" << endl;
 //                 cout    << "Total charge/BX is:\t\t"                << (totEnergy[i]*1E2)*1E3 / 27 * 1.6E-19 * 1E12 << " pC (#e/h x e, with #pairs given by: " << (totEnergy[i]*1E2)*1E3 / 27 << " )" << endl;
-//                 cout    << "Highest energy dep/BX is:\t"            << peakEdepStrip*1E2 << " KeV in strip #" << peakStrip << endl;
-//                 cout    << "Peak dose/BX is:\t\t"                   << peakDoseStrip*1E2 << " Gy in strip " << peakStrip << " (energy: " << peakEdepStrip*1E2 << " KeV, vol: " << vol << " um3)" <<  endl;
+//                 cout    << "Highest energy dep/BX is:\t"            << peakEdepStrip*1E2 << " keV in strip #" << peakStrip << endl;
+//                 cout    << "Peak dose/BX is:\t\t"                   << peakDoseStrip*1E2 << " Gy in strip " << peakStrip << " (energy: " << peakEdepStrip*1E2 << " keV, vol: " << vol << " um3)" <<  endl;
 //             }else if(ifilename.Contains("_9_")){
 //                 cout    << "Total energy deposit/BX is:\t\t"        << totEnergy[i]/1E6 << " GeV" << endl;
 //                 cout    << "Total charge/BX is:\t\t\t"              << totEnergy[i]*1E3 / 27 * 1.6E-19 * 1E12 << " pC (#e/h x e, with #pairs given by: " << totEnergy[i]*1E3 / 27 << " )" << endl;
-//                 cout    << "Highest energy dep/BX is:\t\t"          << peakEdepStrip << " KeV in strip #" << peakStrip << endl;
-//                 cout    << "Peak dose/BX is:\t\t\t"                 << peakDoseStrip << " Gy in strip " << peakStrip << " (energy: " << peakEdepStrip << " KeV, vol: " << vol << " um3)" <<  endl;
+//                 cout    << "Highest energy dep/BX is:\t\t"          << peakEdepStrip << " keV in strip #" << peakStrip << endl;
+//                 cout    << "Peak dose/BX is:\t\t\t"                 << peakDoseStrip << " Gy in strip " << peakStrip << " (energy: " << peakEdepStrip << " keV, vol: " << vol << " um3)" <<  endl;
 //             }
 //             cout    << "*****************************************************************************\n\n";
 //             }
@@ -2468,7 +2906,7 @@ void macro(){}
 //         energyHist[1]->Scale(1E2);
 //     }
 
-//     energyHist[0]->Scale(1E-6);     //KeV -> GeV
+//     energyHist[0]->Scale(1E-6);     //keV -> GeV
 //     energyHist[1]->Scale(1E-6);
 
 //     energyHist[0]->GetYaxis()->SetTitle("Deposited energy / BX [GeV]");    //Set right axis name
@@ -2574,7 +3012,7 @@ void macro(){}
 //             debugTree->SetBranchAddress("det", &det);               // 0,1
 //             debugTree->SetBranchAddress("x", &x);                   // mm
 //             debugTree->SetBranchAddress("y", &y);                   // mm
-//             debugTree->SetBranchAddress("edep", &edep);             // KeV
+//             debugTree->SetBranchAddress("edep", &edep);             // keV
             
             
 //             cout << "Coarse graining..." << endl;
@@ -2640,7 +3078,7 @@ void macro(){}
 //     debugTree->SetBranchAddress("det", &det);               // 0,1
 //     debugTree->SetBranchAddress("x", &x);                   // mm
 //     debugTree->SetBranchAddress("y", &y);                   // mm
-//     debugTree->SetBranchAddress("edep", &edep);             // KeV
+//     debugTree->SetBranchAddress("edep", &edep);             // keV
 //     debugTree->SetBranchAddress("pdg", &pdg);               // -11, 11, 22, -
 
 //     double totEnergy = 0;
@@ -2676,7 +3114,7 @@ void macro(){}
 //     TGraph* eDepStripVsCutPlot = new TGraph();
 //     eDepStripVsCutPlot->SetTitle(TString::Format("Energy deposited in strip %i - det%i", stipNb, detNb));
 //     eDepStripVsCutPlot->GetXaxis()->SetTitle("Cut value [um]");
-//     eDepStripVsCutPlot->GetYaxis()->SetTitle("Tot. Energy [KeV]");
+//     eDepStripVsCutPlot->GetYaxis()->SetTitle("Tot. Energy [keV]");
 
 //     double result =0;
 //     loadAnotherFile("data/runXY_7_cut001_air10.root");
