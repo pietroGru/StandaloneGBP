@@ -10,11 +10,11 @@
 /profiler/gun/importBeam distributions/e0lp_5_0_0_particles_g4_kyleTracks.root
 
 #   Set an offset position for the gun. This serves to shoot the distributions over the geom. center of a strip
-/profiler/gun/position -0.0050 -0.0050 -10 cm				# Shoot in the strip 100(X) 100(Y)
+/profiler/gun/position 0 0 -50 um				# Shoot in the strip 100(X) 100(Y)
 # Gun z-position can be arranged up to |r| = 24 cm from the origin
 
 #RUN1
-/profiler/phys/addPhysics emstandard_opt4
+/profiler/phys/addPhysics emstandard_opt3
 /run/setCut 1 um
 /run/initialize
 /analysis/setFileName kyleBeam_9_50_0.root
