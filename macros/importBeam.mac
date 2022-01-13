@@ -1,7 +1,7 @@
 ###############################################################################
 #  Import beam run (kyleBeam) with 10^9 particles (_9) using
 #  the \xi=5 (_50) initial beam with beam waist w_0=0 (_0).
-#  MC weight is read from file. The simulation uses emstandard_opt4 by default
+#  MC weight is read from file. The simulation uses 'local' physics by default
 ###############################################################################
 /control/execute share.mac
 
