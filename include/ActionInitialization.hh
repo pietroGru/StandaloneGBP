@@ -12,6 +12,7 @@ class ActionInitialization : public G4VUserActionInitialization {
 public:
   
   ActionInitialization(DetectorConstruction* detector, PhysicsList* physics);
+  ActionInitialization(DetectorConstruction* detector);
   virtual ~ActionInitialization();
   
   virtual void BuildForMaster() const;

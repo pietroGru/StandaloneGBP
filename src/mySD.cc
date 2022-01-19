@@ -37,6 +37,7 @@ G4bool mySD::ProcessHits(G4Step* aStep, G4TouchableHistory*) {
 	// Longitudinal profile of deposited energy (along z)
 	G4StepPoint* prePoint = aStep->GetPreStepPoint();
 	G4StepPoint* postPoint = aStep->GetPostStepPoint();
+
 	G4ThreeVector P1 = prePoint->GetPosition();
 	G4ThreeVector P2 = postPoint->GetPosition();
 	G4ThreeVector point = P1 + G4UniformRand() * (P2 - P1);						// randomize point of energy deposition
@@ -70,17 +71,19 @@ G4bool mySD::ProcessHits(G4Step* aStep, G4TouchableHistory*) {
 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 	G4RunManager* runManager = G4RunManager::GetRunManager();
 	G4int eventID = runManager->GetCurrentEvent()->GetEventID();
+	G4int trackID = aStep->GetTrack()->GetTrackID();
 	G4int pdgCode = aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding();
 	G4double sLeng = aStep->GetStepLength();
 	// Dose evaluation
 	analysisManager->FillNtupleIColumn(6, 0, eventID);
-	analysisManager->FillNtupleIColumn(6, 1, detID);
-	analysisManager->FillNtupleDColumn(6, 2, point.x());
-	analysisManager->FillNtupleDColumn(6, 3, point.y());
-	analysisManager->FillNtupleDColumn(6, 4, point.z());
-	analysisManager->FillNtupleDColumn(6, 5, edep / CLHEP::keV);
-	analysisManager->FillNtupleDColumn(6, 6, sLeng / CLHEP::um);
-	analysisManager->FillNtupleIColumn(6, 7, pdgCode);
+	analysisManager->FillNtupleIColumn(6, 1, trackID);
+	analysisManager->FillNtupleIColumn(6, 2, detID);
+	analysisManager->FillNtupleDColumn(6, 3, point.x());
+	analysisManager->FillNtupleDColumn(6, 4, point.y());
+	analysisManager->FillNtupleDColumn(6, 5, point.z());
+	analysisManager->FillNtupleDColumn(6, 6, edep / CLHEP::keV);
+	analysisManager->FillNtupleDColumn(6, 7, sLeng / CLHEP::um);
+	analysisManager->FillNtupleIColumn(6, 8, pdgCode);
 	analysisManager->AddNtupleRow(6);
 	
 	

@@ -13,6 +13,11 @@ ActionInitialization::ActionInitialization(DetectorConstruction* detector,
 	fPhysics(physics)
 {}
 
+ActionInitialization::ActionInitialization(DetectorConstruction* detector) :
+	G4VUserActionInitialization(),
+	fDetector(detector) {
+}
+
 ActionInitialization::~ActionInitialization() {}
 
 void ActionInitialization::BuildForMaster() const {

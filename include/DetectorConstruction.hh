@@ -11,6 +11,7 @@ class G4VPhysicalVolume;
 class G4Material;
 class DetectorMessenger;
 class G4GlobalMagFieldMessenger;
+class G4VModularPhysicsList;
 
 class DetectorConstruction : public G4VUserDetectorConstruction {
 
@@ -32,6 +33,8 @@ public:
 	virtual G4VPhysicalVolume* Construct();
 	G4VPhysicalVolume* ConstructVolumes();
 	virtual void ConstructSDandField();
+	G4VModularPhysicsList* GetPhysicsList() { return fPhysList; }
+	void SetPhysicsList(G4VModularPhysicsList* ptr) { fPhysList = ptr; }
 
 	G4Material* GetMatWorld() { return fMatWorld; };
 	G4Material* GetMaterial() { return fMaterial; };
@@ -61,6 +64,7 @@ private:
 	G4Material* fDefaultMaterial;					// Default material
 
 	DetectorMessenger* fDetectorMessenger;
+	G4VModularPhysicsList* fPhysList;
 	G4Cache<G4GlobalMagFieldMessenger*> fFieldMessenger;
 private:
 	void DefineMaterials();

@@ -31,8 +31,9 @@
 
 DetectorConstruction::DetectorConstruction() :
 	G4VUserDetectorConstruction(),
-	fDefaultMaterial(0),
-	fDetectorMessenger(0) {
+	fDefaultMaterial(nullptr),
+	fDetectorMessenger(nullptr),
+	fPhysList(nullptr) {
 	
 	DefineMaterials();
 
@@ -50,7 +51,9 @@ DetectorConstruction::DetectorConstruction() :
 	fDetectorMessenger = new DetectorMessenger(this);
 }
 
-DetectorConstruction::~DetectorConstruction() { delete fDetectorMessenger; }
+DetectorConstruction::~DetectorConstruction() {
+	delete fDetectorMessenger;
+}
 
 void DetectorConstruction::DefineMaterials() {
 	G4NistManager* man = G4NistManager::Instance();
@@ -116,27 +119,31 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes() {
 		+ G4ThreeVector(0, 0, (fThickness - fMetalizationThickness) / 2);											// z offset to compensate for the thickness
 	new G4PVPlacement(0, strip_xN, metalizationRearL, "Metalization (rear)", detectorL, false, 0, false);
 
+	// Detector placement
+	// X-Axis detector (strips parallel to the x)
+	G4VPhysicalVolume* detectorP_x = new G4PVPlacement(0, position, "Detector X", detectorL, worldP, false, 0);	
+	G4cout << " pointer to physiDet0: " << detectorP_x << G4endl;
+	// Y-Axis detector (strips parallel to the y)
+	G4RotationMatrix* rot = new G4RotationMatrix(pi / 2, 0, 0);
+	G4VPhysicalVolume* detectorP_y = new G4PVPlacement(rot, position + G4ThreeVector(0,0,2*cm), "Detector Y", detectorL, worldP, false, 1);
+	G4cout << " pointer to physiDet1: " << detectorP_y << G4endl;
 	
+
 	// Scoring plane
 	//G4Box* scoringPlaneS = new G4Box("scoringPlaneS", worldLength / 2, worldLength / 2, fThickness / fNbOfLayers / 2);
 	//G4LogicalVolume* scoringPlaneL = new G4LogicalVolume(scoringPlaneS, fDefaultMaterial, "scoringPlaneL");
 	//G4VPhysicalVolume* scoringPlaneP = new G4PVPlacement(0, position + G4ThreeVector(0, 0, 2.5 * cm), "Scoring plane", scoringPlaneL, worldP, false, 2);
 	//scoringPlaneL->SetVisAttributes(G4VisAttributes::GetInvisible());
 	//G4cout << " pointer to part. scorer: " << scoringPlaneP << G4endl;
-	// Scoring plane - charge scorer det0
-	//G4Box* scoringPlaneChargeS = new G4Box("scoringPlaneChargeS", worldLength / 2, worldLength / 2, fThickness / fNbOfLayers / 2);
-	//G4LogicalVolume* scoringPlaneChargeL = new G4LogicalVolume(scoringPlaneChargeS, fDefaultMaterial, "Charge scoring plane");
-	//G4VPhysicalVolume* scoringPlaneChargeP = new G4PVPlacement(0, position + G4ThreeVector(0, 0, fThickness + (fThickness / fNbOfLayers / 2)), "Charge scoring plane", scoringPlaneChargeL, worldP, false, 2);
-	//scoringPlaneChargeL->SetVisAttributes(G4VisAttributes::GetInvisible());
-	//G4cout << " pointer to charge scorer: " << scoringPlaneChargeP << G4endl;
-
-	// Detector placement
-	// X-Axis detector (strips parallel to the x)
-	G4VPhysicalVolume* detectorP_x = new G4PVPlacement(0, position, "Detector X", detectorL, worldP, false, 0);		
-	// Y-Axis detector (strips parallel to the y)
-	G4RotationMatrix* rot = new G4RotationMatrix(pi / 2, 0, 0);
-	G4VPhysicalVolume* detectorP_y = new G4PVPlacement(rot, position + G4ThreeVector(0,0,2*cm), "Detector Y", detectorL, worldP, false, 1);
 	
+	// Scoring plane - charge scorer det0
+	G4Box* scoringPlaneChargeS = new G4Box("scoringPlaneChargeS", worldLength / 2, worldLength / 2, fThickness / fNbOfLayers / 2);
+	G4LogicalVolume* scoringPlaneChargeL = new G4LogicalVolume(scoringPlaneChargeS, fMatWorld, "Charge scoring plane");
+	G4VPhysicalVolume* scoringPlaneChargeP = new G4PVPlacement(0, position + G4ThreeVector(0, 0, 2 * cm - fThickness / 2) + G4ThreeVector(0, 0, - fThickness / fNbOfLayers / 2), "Charge scoring plane", scoringPlaneChargeL, worldP, false, 2);
+	//scoringPlaneChargeL->SetVisAttributes(G4VisAttributes::GetInvisible());
+	G4cout << " pointer to charge scorer: " << scoringPlaneChargeP << G4endl;
+
+
 	// Set visualization attributes
 	worldL->SetVisAttributes(G4VisAttributes::GetInvisible());
 
@@ -145,8 +152,6 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes() {
 	metalizationL->SetVisAttributes(G4Colour(0, 0, 1, 0.5));
 	metalizationRearL->SetVisAttributes(G4Colour(0.2, 0, 0.8, 1.));	
 
-	G4cout << " pointer to physiDet0: " << detectorP_x << G4endl;
-	G4cout << " pointer to physiDet1: " << detectorP_y << G4endl;
 	G4cout << " world material: " << worldL->GetMaterial()->GetName() << G4endl;
 	return worldP;
 }
@@ -267,9 +272,10 @@ void DetectorConstruction::ConstructSDandField() {
 	//SDman->AddNewDetector(planeSD);
 	//SetSensitiveDetector("scoringPlaneL", planeSD);
 	
-	//PlaneSD* chargeScorer = new PlaneSD("chargeScorer");	// Defines the sensitive scoring plane #2 for charged
-	//SDman->AddNewDetector(chargeScorer);
-	//SetSensitiveDetector("Charge scoring plane", chargeScorer);
+	PlaneSD* chargeScorer = new PlaneSD("chargeScorer");	// Defines the sensitive scoring plane #2 for charged
+	//chargeScorer->SetVerboseLevel(2);
+	SDman->AddNewDetector(chargeScorer);
+	SetSensitiveDetector("Charge scoring plane", chargeScorer);
 	
 	G4cout << "detector costructed" << G4endl;
 	if (fFieldMessenger.Get() == 0) {

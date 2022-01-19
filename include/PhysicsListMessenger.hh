@@ -13,7 +13,7 @@ class PhysicsListMessenger: public G4UImessenger {
   
 public:
   
-  PhysicsListMessenger(PhysicsList* );
+  PhysicsListMessenger(PhysicsList* p = 0);
   ~PhysicsListMessenger();
   
   virtual void SetNewValue(G4UIcommand*, G4String);
